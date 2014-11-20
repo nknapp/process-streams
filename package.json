@@ -1,0 +1,10 @@
+{
+  "name": "process-streams",
+  "version": "0.0.1",
+  "dependencies": {
+    "duplex-combination": "^1.2.0",
+    "duplexer": "^0.1.1",
+    "duplexer2": "0.0.2",
+    "tempfile": "^1.1.0"
+  }
+}
