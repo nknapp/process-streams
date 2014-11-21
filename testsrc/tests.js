@@ -1,21 +1,17 @@
 var cp = require("child_process");
 var ps = require("../src/index.js");
 var es = require("event-stream");
-var stream = require("stream");
-var fs = require("fs");
 
 var source = ["ab", "b"];
 
-function testFunction(processProvider, options, callback) {
+function testProcessStream(processProvider, options, callback) {
     var dest = ps(processProvider, options);
     dest.setEncoding("utf8");
-    es.readArray(source).pipe(dest).pipe(es.wait(function (err, target) {
-        callback(err, target);
-    }));
+    es.readArray(source).pipe(dest).pipe(es.wait(callback));
 }
 
 exports.testPipePipe = function (test) {
-    testFunction(function (input, output) {
+    testProcessStream(function () {
         return cp.exec("tee");
     }, {
         pipeStdin: true,
@@ -27,7 +23,7 @@ exports.testPipePipe = function (test) {
 };
 
 exports.testPipeTmp = function (test) {
-    testFunction(function (input, output) {
+    testProcessStream(function (input, output) {
         return cp.exec("tee "+output);
     }, {
         pipeStdin: true,
@@ -39,7 +35,7 @@ exports.testPipeTmp = function (test) {
 };
 
 exports.testTmpPipe = function (test) {
-    testFunction(function (input, output) {
+    testProcessStream(function (input) {
         return cp.exec("cat "+input);
     }, {
         pipeStdin: false,
@@ -51,10 +47,8 @@ exports.testTmpPipe = function (test) {
 };
 
 exports.testTmpTmp = function (test) {
-    testFunction(function (input, output) {
-        var exec = cp.exec("cat " + input);
-        exec.stdout.pipe(fs.createWriteStream(output));
-        return exec;
+    testProcessStream(function (input, output) {
+        return cp.exec("cp " + input+" "+output);
     }, {
         pipeStdin: false,
         pipeStdout: false
