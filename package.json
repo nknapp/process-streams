@@ -1,11 +1,11 @@
 {
   "name": "process-streams",
-  "version": "0.0.3",
+  "version": "0.0.",
   "description": "wrapper for piping data into and out of child processes",
-  "homepage": "http://github.com/nknapp/process-streams",
+  "homepage": "http://github.com/nknapp/process-stream",
   "repository": {
     "type": "git",
-    "url": "git://github.com/nknapp/process-streams.git"
+    "url": "git://github.com/nknapp/process-stream.git"
   },
   "dependencies": {
     "duplexer2": "0.0.2",

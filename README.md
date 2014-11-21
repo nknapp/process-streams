@@ -67,7 +67,7 @@ Examples
    process.stdin.pipe(stream).pipe(process.stdout);
 ```
 
-* Use no temporary files ("cat <in >out")
+* Use no temporary files ("cat &lt;in >out")
 ``` js
    var cp = require("child_process");
    var ps = require("process-streams");
