@@ -1,59 +1,57 @@
 var cp = require("child_process");
-var ps = require("../src/index.js");
+var ps = require("../src/process-streams.js");
 var es = require("event-stream");
+var path = require("path");
+
+require("long-stack-traces");
 
 var source = ["ab", "b"];
 
-function testProcessStream(processProvider, options, callback) {
-    var dest = ps(processProvider, options);
-    dest.setEncoding("utf8");
-    es.readArray(source).pipe(dest).pipe(es.wait(callback));
+
+function checkResult(test) {
+    return function (err, target) {
+        test.equal(target, "abb");
+        test.done();
+    }
 }
 
-exports.testPipePipe = function (test) {
-    testProcessStream(function () {
-        return cp.exec("tee");
-    }, {
-        pipeStdin: true,
-        pipeStdout: true
-    }, function (err, target) {
-        test.equal(target, "abb");
-        test.done();
-    });
+exports.testSpawnPipePipe = function (test) {
+    es.readArray(source).pipe(ps.spawn("cat")).pipe(es.wait(checkResult(test)));
+};
+exports.testSpawnTmpPipe = function (test) {
+    es.readArray(source).pipe(ps.spawn("cat", [ps.IN])).pipe(es.wait(checkResult(test)));
+};
+exports.testSpawnPipeTmp = function (test) {
+    es.readArray(source).pipe(ps.spawn("tee", [ps.OUT])).pipe(es.wait(checkResult(test)));
+};
+exports.testSpawnTmpTmp = function (test) {
+    es.readArray(source).pipe(ps.spawn("cp", [ps.IN,ps.OUT])).pipe(es.wait(checkResult(test)));
 };
 
-exports.testPipeTmp = function (test) {
-    testProcessStream(function (input, output) {
-        return cp.exec("tee "+output);
-    }, {
-        pipeStdin: true,
-        pipeStdout: false
-    }, function (err, target) {
-        test.equal(target, "abb");
-        test.done();
-    });
+
+exports.testExecFilePipePipe = function (test) {
+    es.readArray(source).pipe(ps.execFile("cat")).pipe(es.wait(checkResult(test)));
+};
+exports.testExecFileTmpPipe = function (test) {
+    es.readArray(source).pipe(ps.execFile("cat", [ps.IN])).pipe(es.wait(checkResult(test)));
+};
+exports.testExecFilePipeTmp = function (test) {
+    es.readArray(source).pipe(ps.execFile("tee", [ps.OUT])).pipe(es.wait(checkResult(test)));
+};
+exports.testExecFileTmpTmp = function (test) {
+    es.readArray(source).pipe(ps.execFile("cp", [ps.IN,ps.OUT])).pipe(es.wait(checkResult(test)));
 };
 
-exports.testTmpPipe = function (test) {
-    testProcessStream(function (input) {
-        return cp.exec("cat "+input);
-    }, {
-        pipeStdin: false,
-        pipeStdout: true
-    }, function (err, target) {
-        test.equal(target, "abb");
-        test.done();
-    });
+exports.testExecPipePipe = function (test) {
+    es.readArray(source).pipe(ps.exec("cat")).pipe(es.wait(checkResult(test)));
+};
+exports.testExecTmpPipe = function (test) {
+    es.readArray(source).pipe(ps.exec("cat <INPUT>")).pipe(es.wait(checkResult(test)));
+};
+exports.testExecPipeTmp = function (test) {
+    es.readArray(source).pipe(ps.exec("tee <OUTPUT>")).pipe(es.wait(checkResult(test)));
+};
+exports.testExecTmpTmp = function (test) {
+    es.readArray(source).pipe(ps.exec("cp <INPUT> <OUTPUT>")).pipe(es.wait(checkResult(test)));
 };
 
-exports.testTmpTmp = function (test) {
-    testProcessStream(function (input, output) {
-        return cp.exec("cp " + input+" "+output);
-    }, {
-        pipeStdin: false,
-        pipeStdout: false
-    }, function (err, target) {
-        test.equal(target, "abb");
-        test.done();
-    });
-};

@@ -1,6 +1,6 @@
 {
   "name": "process-streams",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "wrapper for piping data into and out of child processes",
   "homepage": "http://github.com/nknapp/process-streams",
   "repository": {
@@ -11,7 +11,7 @@
     "duplexer2": "0.0.2",
     "tempfile": "^1.1.0"
   },
-  "main": "src/index.js",
+  "main": "src/process-streams.js",
   "scripts": {
     "test": "./node_modules/nodeunit/bin/nodeunit testsrc/"
   },
