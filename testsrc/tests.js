@@ -19,13 +19,13 @@ exports.testSpawnPipePipe = function (test) {
     es.readArray(source).pipe(ps.spawn("cat")).pipe(es.wait(checkResult(test)));
 };
 exports.testSpawnTmpPipe = function (test) {
-    es.readArray(source).pipe(ps.spawn("cat", [ps.IN])).pipe(es.wait(checkResult(test)));
+    es.readArray(source).pipe(ps.spawn("cat", ["<INPUT>"])).pipe(es.wait(checkResult(test)));
 };
 exports.testSpawnPipeTmp = function (test) {
-    es.readArray(source).pipe(ps.spawn("tee", [ps.OUT])).pipe(es.wait(checkResult(test)));
+    es.readArray(source).pipe(ps.spawn("tee", ["<OUTPUT>"])).pipe(es.wait(checkResult(test)));
 };
 exports.testSpawnTmpTmp = function (test) {
-    es.readArray(source).pipe(ps.spawn("cp", [ps.IN,ps.OUT])).pipe(es.wait(checkResult(test)));
+    es.readArray(source).pipe(ps.spawn("cp", ["<INPUT>","<OUTPUT>"])).pipe(es.wait(checkResult(test)));
 };
 
 
