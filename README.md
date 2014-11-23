@@ -13,69 +13,65 @@ so data must be stored in a temporary file prior to calling ffmpeg.
 
 
 
-Usage
-=====
+Overview
+========
 
-require('process-streams')(function,options)
----------------------------------------------
+ProcessStreams provides the methods `exec`, `execFile` and `spawn` from the `child_process` with the same arguments.
+The return value however is always a through-stream. The command line arguments are examined for occurences of
+the strings `<INPUT>` and `<OUTPUT>`.
 
-Creates a readable/writable stream wrapping a child-process.
+ * If `<INPUT>` is present, the stream input is piped into a temporary file and `<INPUT>` is replaced by its filename.
+ * If `<OUTPUT>` is present, it is replaced by the name of a temporary file and the contents of this file is
+ used as stream output for the resulting stream.
+ * If `<INPUT>` or `<OUTPUT>` are not present, the stream input is directly piped to the child processes stdin
+ (or the child processes stdout is piped to the stream output).
 
-`function` must create and return the child process that should be wrapped. The arguments
-depend on the provided options:
+Temporary files are always deleted when no longer needed.
 
-If `options.pipeStdin` is `false`, the first parameter of `function` is a path to a temporary file
-containing the data piped into the stream. The `function` is called once the data is completely
-written to the file. The file is deleted after the child-process has exited.
+For details about function arguments please refer to the api documentation of the `child_process` module:
 
-If `options.pipeStdout` is `false`, the second parameter of `function` is a path to a temporary file.
-Once the created process exits, this contents of this file is piped through the readable part of the stream.
-The file is deleted after all the data has been streamed.
-
-Note the `options` is not optional at the moment.
+ * [child_process.spawn(command, [args], [options])](http://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options)
+ * [child_process.exec(command, [options], callback)](http://nodejs.org/api/child_process.html#child_process_child_process_exec_command_options_callback)
+ * [child_process.execFile(file, [args], [options], [callback])](http://nodejs.org/api/child_process.html#child_process_child_process_execfile_file_args_options_callback)
 
 Examples
-========
-* Use temporary file as input ("cat tmpfile >out")
-``` js
+--------
 
-   var cp = require("child_process");
-   var ps = require("process-streams");
-   var stream = ps(function (input, output) {
-       return cp.exec("cat " + input);
-   }, {pipeStdin: false, pipeStdout: true});
-   process.stdin.pipe(stream).pipe(process.stdout);
+The following examples actually only pipe data from stdin to stdout, but via child processes with different temp-file options.
+
+``` js
+   var ProcessStream = require("process-streams");
+   var ps = new ProcessStream();
+   // Temporary files for input and output
+   process.stdin.pipe(ps.exec("cp <INPUT> <OUTPUT>")).pipe(process.stdout);
+   process.stdin.pipe(ps.spawn("cp",["<INPUT>","<OUTPUT>"])).pipe(process.stdout);
+   process.stdin.pipe(ps.execFile("cp",["<INPUT>","<OUTPUT>"])).pipe(process.stdout);
+
+   // Stream input, use temp-file for output
+   process.stdin.pipe(ps.spawn("tee",["<OUTPUT>"])).pipe(process.stdout);
+
+   // Temp-file for input, Stream for output
+   process.stdin.pipe(ps.spawn("cat ",["<INPUT>"])).pipe(process.stdout);
+
+   // Pipe both sides
+   process.stdin.pipe(ps.spawn("cat ")).pipe(process.stdout);
+
 ```
 
-* Use temporary file as output ("tee tmpfile <in")
-``` js
-   var cp = require("child_process");
-   var ps = require("process-streams");
-   var stream = ps(function (input, output) {
-       return cp.exec("tee " + output);
-   }, {pipeStdin: true, pipeStdout: false});
-   process.stdin.pipe(stream).pipe(process.stdout);
-```
+The tokens `<INPUT>` and `<OUTPUT>` can be changed:
 
-* Use temporary file for both input and ouput ("cp source target")
 ``` js
-   var cp = require("child_process");
-   var ps = require("process-streams");
-   var stream = ps(function (input, output) {
-       return cp.exec("cp " + input + " " + output);
-   }, {pipeStdin: false, pipeStdout: false});
-   process.stdin.pipe(stream).pipe(process.stdout);
-```
-
-* Use no temporary files ("cat &lt;in >out")
-``` js
-   var cp = require("child_process");
-   var ps = require("process-streams");
-   var stream = ps(function (input, output) {
-       return cp.exec("cat");
-   }, {pipeStdin: true, pipeStdout: true});
-   process.stdin.pipe(stream).pipe(process.stdout);
+   var ProcessStream = require("process-streams");
+   var ps = new ProcessStream('[IN]','[OUT]');
+   process.stdin.pipe(ps.exec("cp [IN] [OUT]")).pipe(process.stdout);
 ```
 
 
-Please note that this api is still experimental. Feedback is welcome although I cannot guarantee any response times at the moment.
+TODO
+====
+
+ * Proper error handling.
+ * Add child process as property to the created stream.
+
+
+*Please note that this api is still experimental. Feedback is welcome, although I cannot guarantee any response times at the moment.*

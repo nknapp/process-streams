@@ -1,5 +1,6 @@
 var cp = require("child_process");
-var ps = require("../src/process-streams.js");
+var ProcessStreams = require("../src/process-streams.js");
+var ps = new ProcessStreams();
 var es = require("event-stream");
 var path = require("path");
 
@@ -55,3 +56,8 @@ exports.testExecTmpTmp = function (test) {
     es.readArray(source).pipe(ps.exec("cp <INPUT> <OUTPUT>")).pipe(es.wait(checkResult(test)));
 };
 
+
+exports.testChangePlaceHolders = function (test) {
+    var ps = new ProcessStreams("[IN]","[OUT]");
+    es.readArray(source).pipe(ps.exec("cp [IN] [OUT]")).pipe(es.wait(checkResult(test)));
+};
