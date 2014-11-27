@@ -26,23 +26,23 @@ function tmpFile(fileOrStream) {
  * @param tmpIn path to a tempfile to write input stream input to before calling the callback,
  *  if this is null, the stream input is directly
  * @param tmpOut path to a tempfile to which the
- * @param callback function(err,tmpOrInputStream, tmpOrOutputStream, callback(err)) the callback is called whenever the input
+ * @param callback function(tmpOrInputStream, tmpOrOutputStream, callback(err)) the callback is called whenever the input
  *   is available.
  * @returns {Stream}
  */
 function createStream(tmpIn, tmpOut, callback) {
 
-    var writable = new stream.PassThrough();
-    var readable = new stream.PassThrough();
+    var incoming = new stream.PassThrough();
+    var outgoing = new stream.PassThrough();
     // input paramter of the child process
 
-    inStream(writable, tmpIn, function (err) {
+    inStream(incoming, tmpIn, function (err) {
         if (err) {
-            readable.emit("error", err);
+            outgoing.emit("error", err);
         } else {
-            callback(tmpIn || writable, tmpOut || readable, function (err) {
+            callback(tmpIn || incoming, tmpOut || outgoing, function (err) {
                 if (err) {
-                    readable.emit("error", err);
+                    outgoing.emit("error", err);
                     if (tmpIn) {
                         fs.unlink(tmpIn);
                     }
@@ -57,7 +57,7 @@ function createStream(tmpIn, tmpOut, callback) {
                 }
                 if (tmpOut) {
                     var out = fs.createReadStream(tmpOut);
-                    out.pipe(readable);
+                    out.pipe(outgoing);
                     out.on("end", function () {
                         fs.unlink(tmpOut);
                     });
@@ -65,7 +65,7 @@ function createStream(tmpIn, tmpOut, callback) {
             });
         }
     });
-    return duplexer(writable, readable);
+    return duplexer(incoming, outgoing);
 }
 
 /**
