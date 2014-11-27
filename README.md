@@ -34,6 +34,13 @@ For details about function arguments please refer to the api documentation of th
  * [child_process.exec(command, [options], callback)](http://nodejs.org/api/child_process.html#child_process_child_process_exec_command_options_callback)
  * [child_process.execFile(file, [args], [options], [callback])](http://nodejs.org/api/child_process.html#child_process_child_process_execfile_file_args_options_callback)
 
+Additionally there is another function
+
+ * [ps.factory(useTmpIn, useTmpOut, callback]() which uses the provided callback to connect input and output of the resulting stream. The callback has the
+ signature `function(err, input, output, callback)`. "input" and "output" are either streams of paths of temporary files. The callback must be called
+ when data is available for output. If "tmpUseOut" is `false`, this can be called immediately. It "tmpUseOut" is `true` it must be called, when the output
+ tempfile has completely been written to.
+
 Examples
 --------
 
@@ -54,7 +61,7 @@ The following examples actually only pipe data from stdin to stdout, but via chi
    process.stdin.pipe(ps.spawn("cat ",["<INPUT>"])).pipe(process.stdout);
 
    // Pipe both sides
-   process.stdin.pipe(ps.spawn("cat ")).pipe(process.stdout);
+   process.stdin.pipe(ps.spawn("cat")).pipe(process.stdout);
 
 ```
 

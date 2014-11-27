@@ -38,7 +38,16 @@ function createStream(tmpIn, tmpOut, callback) {
 
     inStream(writable, tmpIn, function (err) {
         callback(err, tmpIn || writable, tmpOut || readable, function (err) {
-            // TODO: What to do with "err"?
+            if (err) {
+                readable.emit("error", err);
+                if (tmpIn) {
+                    fs.unlink(tmpIn);
+                }
+                if (tmpOut) {
+                    fs.unlink(tmpOut);
+                }
+                return;
+            }
             // tmpFile is not needed anymore
             if (tmpIn) {
                 fs.unlink(tmpIn);
@@ -48,7 +57,7 @@ function createStream(tmpIn, tmpOut, callback) {
                 out.pipe(readable);
                 out.on("end", function () {
                     fs.unlink(tmpOut);
-                })
+                });
             }
         });
     });
@@ -103,17 +112,16 @@ function wrapProcess(tmpIn, tmpOut, processProvider) {
     });
 }
 
-
 /**
  * Create a new ProcessStreams instance optionally providing placeholder for &lt;INPUT> and &lt;OUTPUT>
  * @param [IN] placeholder for input file
  * @param [OUT] placeholder for output file
  */
-module.exports = function(IN,OUT) {
+module.exports = function (IN, OUT) {
     // Expose IN and OUT to the public, but use local variables internally
     this.IN = IN = IN || "<INPUT>";
     this.OUT = OUT = OUT || "<OUTPUT>";
-    var placeHolderRegex = new RegExp("(" + quotemeta(IN) + "|" + quotemeta(OUT) + ")","g");
+    var placeHolderRegex = new RegExp("(" + quotemeta(IN) + "|" + quotemeta(OUT) + ")", "g");
 
     /**
      * Replace placeholders in command line arguments (array)
@@ -192,9 +200,18 @@ module.exports = function(IN,OUT) {
         return wrapProcess(parsed.in, parsed.out, function () {
             return cp.execFile(command, parsed.args, options, callback);
         });
-    }
-
-
+    };
+    /**
+     * Creates a stream using a factory function that connects input and output.
+     * @param useTmpIn {boolean} whether to use a temp file as input
+     * @param useTmpOut {boolean} whether to use a temp file as output
+     * @param callback {function(err:Error,input,output,callback)} callback method that connects the input to the output somehow.
+     *  Depending on the useTmpIn and useTmpOut parameter, the input and output parameters of the callback are either strings pointing
+     *  to files or streams.
+     */
+    this.factory = function (useTmpIn, useTmpOut, callback) {
+        return createStream(useTmpIn && tmp(), useTmpOut && tmp(), callback);
+    };
 
 };
 

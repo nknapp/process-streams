@@ -3,6 +3,7 @@ var ProcessStreams = require("../src/process-streams.js");
 var ps = new ProcessStreams();
 var es = require("event-stream");
 var path = require("path");
+var fs= require("fs");
 
 require("long-stack-traces");
 
@@ -60,4 +61,39 @@ exports.testExecTmpTmp = function (test) {
 exports.testChangePlaceHolders = function (test) {
     var ps = new ProcessStreams("[IN]","[OUT]");
     es.readArray(source).pipe(ps.exec("cp [IN] [OUT]")).pipe(es.wait(checkResult(test)));
+};
+
+
+
+function wrapper(err,input,output,callback) {
+    if (err) {
+        callback(err);
+        return;
+    }
+    if (typeof(input)==="string") {
+        input = fs.createReadStream(input);
+    }
+    if (typeof(output)==="string") {
+        output = fs.createWriteStream(output);
+        output.on("error",callback);
+        output.on("finish",function() {
+            callback();
+        });
+    } else {
+        callback();
+    }
+    input.pipe(output);
+}
+
+exports.testFactoryPipePipe = function (test) {
+    es.readArray(source).pipe(ps.factory(false,false,wrapper)).pipe(es.wait(checkResult(test)));
+};
+exports.testFactoryTmpPipe = function (test) {
+    es.readArray(source).pipe(ps.factory(true,false, wrapper)).pipe(es.wait(checkResult(test)));
+};
+exports.testFactoryPipeTmp = function (test) {
+    es.readArray(source).pipe(ps.factory(true,false, wrapper)).pipe(es.wait(checkResult(test)));
+};
+exports.testFactoryTmpTmp = function (test) {
+    es.readArray(source).pipe(ps.factory(true,false, wrapper)).pipe(es.wait(checkResult(test)));
 };
