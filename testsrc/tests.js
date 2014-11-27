@@ -65,11 +65,7 @@ exports.testChangePlaceHolders = function (test) {
 
 
 
-function wrapper(err,input,output,callback) {
-    if (err) {
-        callback(err);
-        return;
-    }
+function wrapper(input,output,callback) {
     if (typeof(input)==="string") {
         input = fs.createReadStream(input);
     }

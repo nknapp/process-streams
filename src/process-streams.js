@@ -37,29 +37,33 @@ function createStream(tmpIn, tmpOut, callback) {
     // input paramter of the child process
 
     inStream(writable, tmpIn, function (err) {
-        callback(err, tmpIn || writable, tmpOut || readable, function (err) {
-            if (err) {
-                readable.emit("error", err);
+        if (err) {
+            readable.emit("error", err);
+        } else {
+            callback(tmpIn || writable, tmpOut || readable, function (err) {
+                if (err) {
+                    readable.emit("error", err);
+                    if (tmpIn) {
+                        fs.unlink(tmpIn);
+                    }
+                    if (tmpOut) {
+                        fs.unlink(tmpOut);
+                    }
+                    return;
+                }
+                // tmpFile is not needed anymore
                 if (tmpIn) {
                     fs.unlink(tmpIn);
                 }
                 if (tmpOut) {
-                    fs.unlink(tmpOut);
+                    var out = fs.createReadStream(tmpOut);
+                    out.pipe(readable);
+                    out.on("end", function () {
+                        fs.unlink(tmpOut);
+                    });
                 }
-                return;
-            }
-            // tmpFile is not needed anymore
-            if (tmpIn) {
-                fs.unlink(tmpIn);
-            }
-            if (tmpOut) {
-                var out = fs.createReadStream(tmpOut);
-                out.pipe(readable);
-                out.on("end", function () {
-                    fs.unlink(tmpOut);
-                });
-            }
-        });
+            });
+        }
     });
     return duplexer(writable, readable);
 }
@@ -95,10 +99,7 @@ function inStream(stream, tmpFile, callback) {
  * @param tmpOut the location of a temporary file that the process writes to and that is used as source to the stream output.
  */
 function wrapProcess(tmpIn, tmpOut, processProvider) {
-    return createStream(tmpIn, tmpOut, function (err, input, output, callback) {
-        if (err) {
-            callback(err);
-        }
+    return createStream(tmpIn, tmpOut, function (input, output, callback) {
         var process = processProvider(tmpFile(input), tmpFile(output));
         if (!tmpIn) {
             input.pipe(process.stdin);

@@ -42,7 +42,7 @@ Additionally there is another function
 
 This function uses the provided callback to connect input and output of the resulting stream. `useTmpIn` and `useTmpOut` are booleans that define which
 parts of the stream temp should use temp files.
-`callback` has the signature `function(err, input, output, callback)`. "input" and "output" are either streams of paths of temporary files. The callback must
+`callback` has the signature `function(input, output, callback)`. "input" and "output" are either streams of paths of temporary files. The callback must
  be called when data is available for output. If "tmpUseOut" is `false`, this can be called immediately. It "tmpUseOut" is `true` it must be called, when the
   output tempfile has completely been written to.
 
