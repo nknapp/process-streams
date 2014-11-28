@@ -44,10 +44,18 @@ function createStream(tmpIn, tmpOut, callback) {
                 if (err) {
                     outgoing.emit("error", err);
                     if (tmpIn) {
-                        fs.unlink(tmpIn);
+                        fs.exists(tmpIn, function(exists) {
+                            if (exists) {
+                                fs.unlink(tmpIn);
+                            }
+                        });
                     }
                     if (tmpOut) {
-                        fs.unlink(tmpOut);
+                        fs.exists(tmpOut, function(exists) {
+                            if (exists) {
+                                fs.unlink(tmpOut);
+                            }
+                        });
                     }
                     return;
                 }
@@ -184,20 +192,20 @@ module.exports = function (IN, OUT) {
      * @param [callback]
      */
     this.spawn = function (command, args, options, callback) {
-        var parsed = parseArgs(args, tmp(), tmp());
+        var parsed = parseArgs(args, tmp(".in"), tmp(".out"));
         return wrapProcess(parsed.in, parsed.out, function () {
             return cp.spawn(command, parsed.args, options, callback);
         });
 
     };
     this.exec = function (command, options, callback) {
-        var parsed = parseString(command, tmp(), tmp());
+        var parsed = parseString(command, tmp(".in"), tmp(".out"));
         return wrapProcess(parsed.in, parsed.out, function () {
             return cp.exec(parsed.string, options, callback);
         });
     };
     this.execFile = function (command, args, options, callback) {
-        var parsed = parseArgs(args, tmp(), tmp());
+        var parsed = parseArgs(args, tmp(".in"), tmp(".out"));
         return wrapProcess(parsed.in, parsed.out, function () {
             return cp.execFile(command, parsed.args, options, callback);
         });
@@ -211,7 +219,7 @@ module.exports = function (IN, OUT) {
      *  to files or streams.
      */
     this.factory = function (useTmpIn, useTmpOut, callback) {
-        return createStream(useTmpIn && tmp(), useTmpOut && tmp(), callback);
+        return createStream(useTmpIn && tmp(".in"), useTmpOut && tmp(".out"), callback);
     };
 
 };
