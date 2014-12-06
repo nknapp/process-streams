@@ -27,7 +27,7 @@ function tmpFile(fileOrStream) {
  *  if this is null, the stream input is directly
  * @param tmpOut path to a tempfile to which the
  * @param callback function(tmpOrInputStream, tmpOrOutputStream, callback(err)) the callback is called whenever the input
- *   is available.
+ *   is available. The "result" parameter is the duplex stream actually returned by this function.
  * @returns {Stream}
  */
 function createStream(tmpIn, tmpOut, callback) {
@@ -35,23 +35,23 @@ function createStream(tmpIn, tmpOut, callback) {
     var incoming = new stream.PassThrough();
     var outgoing = new stream.PassThrough();
     // input paramter of the child process
-
+    var result = duplexer(incoming, outgoing);
     inStream(incoming, tmpIn, function (err) {
         if (err) {
-            outgoing.emit("error", err);
+            result.emit("error", err);
         } else {
-            callback(tmpIn || incoming, tmpOut || outgoing, function (err) {
+            callback.call(result, tmpIn || incoming, tmpOut || outgoing, function (err) {
                 if (err) {
-                    outgoing.emit("error", err);
+                    result.emit("error", err);
                     if (tmpIn) {
-                        fs.exists(tmpIn, function(exists) {
+                        fs.exists(tmpIn, function (exists) {
                             if (exists) {
                                 fs.unlink(tmpIn);
                             }
                         });
                     }
                     if (tmpOut) {
-                        fs.exists(tmpOut, function(exists) {
+                        fs.exists(tmpOut, function (exists) {
                             if (exists) {
                                 fs.unlink(tmpOut);
                             }
@@ -73,7 +73,7 @@ function createStream(tmpIn, tmpOut, callback) {
             });
         }
     });
-    return duplexer(incoming, outgoing);
+    return result;
 }
 
 /**
@@ -108,7 +108,7 @@ function inStream(stream, tmpFile, callback) {
  */
 function wrapProcess(tmpIn, tmpOut, processProvider) {
     return createStream(tmpIn, tmpOut, function (input, output, callback) {
-        var process = processProvider(tmpFile(input), tmpFile(output));
+        var process = processProvider.call(this,tmpIn, tmpOut);
         if (!tmpIn) {
             input.pipe(process.stdin);
         }
@@ -185,29 +185,54 @@ module.exports = function (IN, OUT) {
 
     /**
      * Like child_process.spawn, but returns a through-stream instead of the child process.
-     * The property "process" of the stream contains the child process
-     * @param command
-     * @param args
-     * @param [options]
-     * @param [callback]
+     * A "started"-event is sent when the process is actually started. The event contains the
+     * process-object as first and the resolved command and argument list as second and third parameter.
+     * @param command The command to run
+     * @param args the arguments to be passed to the command
+     * @param [options] options as in "child_process.spawn"
+     * @param [callback] callback as in "child_process.spawn"
      */
     this.spawn = function (command, args, options, callback) {
         var parsed = parseArgs(args, tmp(".in"), tmp(".out"));
         return wrapProcess(parsed.in, parsed.out, function () {
-            return cp.spawn(command, parsed.args, options, callback);
+            var process = cp.spawn(command, parsed.args, options, callback);
+            this.emit("started", process, command, parsed.args);
+            return process;
         });
 
     };
+    /**
+     * Like child_process.exec, but returns a through-stream instead of the child process.
+     * A "started"-event is sent when the process is actually started. The event contains the
+     * process-object as first and the resolved command as second parameter.
+     * @param command The command to run
+     * @param [options] options as in "child_process.exec"
+     * @param [callback] callback as in "child_process.exec"
+     */
     this.exec = function (command, options, callback) {
         var parsed = parseString(command, tmp(".in"), tmp(".out"));
         return wrapProcess(parsed.in, parsed.out, function () {
-            return cp.exec(parsed.string, options, callback);
+            var process = cp.exec(parsed.string, options, callback);
+            this.emit("started", process, parsed.string);
+            return process;
         });
     };
+
+    /**
+     * Like child_process.execFile, but returns a through-stream instead of the child process.
+     * A "started"-event is sent when the process is actually started. The event contains the
+     * process-object as first and the resolved command and argument list as second and third parameter.
+     * @param command The command to run
+     * @param args the arguments to be passed to the command
+     * @param [options] options as in "child_process.exec"
+     * @param [callback] callback as in "child_process.exec"
+     */
     this.execFile = function (command, args, options, callback) {
         var parsed = parseArgs(args, tmp(".in"), tmp(".out"));
         return wrapProcess(parsed.in, parsed.out, function () {
-            return cp.execFile(command, parsed.args, options, callback);
+            var process = cp.execFile(command, parsed.args, options, callback);
+            this.emit("started", process, parsed.args);
+            return process;
         });
     };
     /**
@@ -216,7 +241,8 @@ module.exports = function (IN, OUT) {
      * @param useTmpOut {boolean} whether to use a temp file as output
      * @param callback {function(err:Error,input,output,callback)} callback method that connects the input to the output somehow.
      *  Depending on the useTmpIn and useTmpOut parameter, the input and output parameters of the callback are either strings pointing
-     *  to files or streams.
+     *  to files or streams. The callback is called in the this-context of the created stream, so
+     *  "this.emit(...)" may be used to emit events when from the callback.
      */
     this.factory = function (useTmpIn, useTmpOut, callback) {
         return createStream(useTmpIn && tmp(".in"), useTmpOut && tmp(".out"), callback);

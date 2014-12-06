@@ -18,7 +18,12 @@ function checkResult(test) {
 }
 
 exports.testSpawnPipePipe = function (test) {
-    es.readArray(source).pipe(ps.spawn("cat")).pipe(es.wait(checkResult(test)));
+    test.expect(4);
+    es.readArray(source).pipe(ps.spawn("cat").on("started", function(process,command,args) {
+        test.equal("cat",command);
+        test.equal([],args);
+        test.ok(process);
+    })).pipe(es.wait(checkResult(test)));
 };
 exports.testSpawnTmpPipe = function (test) {
     es.readArray(source).pipe(ps.spawn("cat", ["<INPUT>"])).pipe(es.wait(checkResult(test)));
