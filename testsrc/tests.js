@@ -21,7 +21,7 @@ exports.testSpawnPipePipe = function (test) {
     test.expect(4);
     es.readArray(source).pipe(ps.spawn("cat").on("started", function(process,command,args) {
         test.equal("cat",command);
-        test.equal([],args);
+        test.ok(!args);
         test.ok(process);
     })).pipe(es.wait(checkResult(test)));
 };

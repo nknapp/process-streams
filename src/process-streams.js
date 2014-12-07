@@ -36,42 +36,44 @@ function createStream(tmpIn, tmpOut, callback) {
     var outgoing = new stream.PassThrough();
     // input paramter of the child process
     var result = duplexer(incoming, outgoing);
-    inStream(incoming, tmpIn, function (err) {
-        if (err) {
-            result.emit("error", err);
-        } else {
-            callback.call(result, tmpIn || incoming, tmpOut || outgoing, function (err) {
-                if (err) {
-                    result.emit("error", err);
+    setTimeout(function () {
+        inStream(incoming, tmpIn, function (err) {
+            if (err) {
+                result.emit("error", err);
+            } else {
+                callback.call(result, tmpIn || incoming, tmpOut || outgoing, function (err) {
+                    if (err) {
+                        result.emit("error", err);
+                        if (tmpIn) {
+                            fs.exists(tmpIn, function (exists) {
+                                if (exists) {
+                                    fs.unlink(tmpIn);
+                                }
+                            });
+                        }
+                        if (tmpOut) {
+                            fs.exists(tmpOut, function (exists) {
+                                if (exists) {
+                                    fs.unlink(tmpOut);
+                                }
+                            });
+                        }
+                        return;
+                    }
+                    // tmpFile is not needed anymore
                     if (tmpIn) {
-                        fs.exists(tmpIn, function (exists) {
-                            if (exists) {
-                                fs.unlink(tmpIn);
-                            }
-                        });
+                        fs.unlink(tmpIn);
                     }
                     if (tmpOut) {
-                        fs.exists(tmpOut, function (exists) {
-                            if (exists) {
-                                fs.unlink(tmpOut);
-                            }
+                        var out = fs.createReadStream(tmpOut);
+                        out.pipe(outgoing);
+                        out.on("end", function () {
+                            fs.unlink(tmpOut);
                         });
                     }
-                    return;
-                }
-                // tmpFile is not needed anymore
-                if (tmpIn) {
-                    fs.unlink(tmpIn);
-                }
-                if (tmpOut) {
-                    var out = fs.createReadStream(tmpOut);
-                    out.pipe(outgoing);
-                    out.on("end", function () {
-                        fs.unlink(tmpOut);
-                    });
-                }
-            });
-        }
+                });
+            }
+        });
     });
     return result;
 }
@@ -108,7 +110,7 @@ function inStream(stream, tmpFile, callback) {
  */
 function wrapProcess(tmpIn, tmpOut, processProvider) {
     return createStream(tmpIn, tmpOut, function (input, output, callback) {
-        var process = processProvider.call(this,tmpIn, tmpOut);
+        var process = processProvider.call(this, tmpIn, tmpOut);
         if (!tmpIn) {
             input.pipe(process.stdin);
         }
