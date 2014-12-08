@@ -83,7 +83,7 @@ Events
 ------
 Process errors (such as not finding the executable file) are emitted on the resulting stream as `'error'` event.
 The `'started'` event is emitted when the is started. Its first argument is the child-process object, second and
-third arguments are the `command` and `arguments` passed to `ps.exec`, `ps.spawn` or `ps.execFile`), but with the
+third arguments are the `command` and `args` passed to `ps.exec`, `ps.spawn` or `ps.execFile`), but with the
 placeholders resolved to the their actual temporary files.
 
 ``` js
@@ -91,8 +91,8 @@ placeholders resolved to the their actual temporary files.
     var ps = new ProcessStream('[IN]','[OUT]');
     process.stdin.pipe(ps.spawn("cp", ["[IN]","[OUT]"])).on("error", function(err) {
         // Handle errors
-    }).on("started", function(process, command, arguments) {
-           // If "ps.exec" is called, 'command' contains the whole resolved command and 'arguments' is undefined.
+    }).on("started", function(process, command, args) {
+           // If "ps.exec" is called, 'command' contains the whole resolved command and 'args' is undefined.
     }).on("exit", function(code, signel) {
           // see the 'child_process' documentation for the 'exit'-event.
     }).pipe(process.stdout);
