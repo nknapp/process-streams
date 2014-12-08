@@ -46,7 +46,7 @@ parts of the stream temp should use temp files.
  be called when data is available for output. If "tmpUseOut" is `false`, this can be called immediately. It "tmpUseOut" is `true` it must be called, when the
   output tempfile has completely been written to.
 
-Examples
+Simple Examples
 --------
 
 The following examples actually only pipe data from stdin to stdout, but via child processes with different temp-file options.
@@ -67,9 +67,10 @@ The following examples actually only pipe data from stdin to stdout, but via chi
 
    // Pipe both sides
    process.stdin.pipe(ps.spawn("cat")).pipe(process.stdout);
-
 ```
 
+Changing the placeholder tokens
+-------------------------------
 The tokens `<INPUT>` and `<OUTPUT>` can be changed:
 
 ``` js
@@ -78,10 +79,23 @@ The tokens `<INPUT>` and `<OUTPUT>` can be changed:
    process.stdin.pipe(ps.exec("cp [IN] [OUT]")).pipe(process.stdout);
 ```
 
+Events
+------
+Process errors (such as not finding the executable file) are emitted on the resulting stream as `'error'` event.
+The `'started'` event is emitted when the is started. Its first argument is the child-process object, second and
+third arguments are the `command` and `arguments` passed to `ps.exec`, `ps.spawn` or `ps.execFile`), but with the
+placeholders resolved to the their actual temporary files.
 
-TODO
-====
- * Add child process as property to the created stream.
-
+``` js
+    var ProcessStream = require("process-streams");
+    var ps = new ProcessStream('[IN]','[OUT]');
+    process.stdin.pipe(ps.spawn("cp", ["[IN]","[OUT]"])).on("error", function(err) {
+        // Handle errors
+    }).on("started", function(process, command, arguments) {
+           // If "ps.exec" is called, 'command' contains the whole resolved command and 'arguments' is undefined.
+    }).on("exit", function(code, signel) {
+          // see the 'child_process' documentation for the 'exit'-event.
+    }).pipe(process.stdout);
+```
 
 *Please note that this api is still experimental. Feedback is welcome, although I cannot guarantee any response times at the moment.*
