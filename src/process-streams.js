@@ -8,18 +8,6 @@ var cp = require("child_process");
 var quotemeta = require("quotemeta");
 
 /**
- * Return first argument if it is the path of a temp file (i.e. a string), and null if it is a stream
- * @param fileOrStream
- */
-function tmpFile(fileOrStream) {
-    if (typeof fileOrStream === "string") {
-        return fileOrStream;
-    } else {
-        return null;
-    }
-}
-
-/**
  * Base function to create streams of something, if values are provided for tmpIn (or tmpOut),
  * these are passed to the callback function. If not, the input stream (or the output stream) are used instead.
  *
@@ -65,10 +53,16 @@ function createStream(tmpIn, tmpOut, callback) {
                         fs.unlink(tmpIn);
                     }
                     if (tmpOut) {
-                        var out = fs.createReadStream(tmpOut);
-                        out.pipe(outgoing);
-                        out.on("end", function () {
-                            fs.unlink(tmpOut);
+                        fs.exists(tmpOut, function (exists) {
+                            if (exists) {
+                                var out = fs.createReadStream(tmpOut);
+                                out.pipe(outgoing);
+                                out.on("end", function () {
+                                    fs.unlink(tmpOut);
+                                });
+                            } else {
+                                result.emit("error",new Error("Child process has not created the output-temp file"));
+                            }
                         });
                     }
                 });
@@ -110,14 +104,19 @@ function inStream(stream, tmpFile, callback) {
  */
 function wrapProcess(tmpIn, tmpOut, processProvider) {
     return createStream(tmpIn, tmpOut, function (input, output, callback) {
+        var _this = this;
         var process = processProvider.call(this, tmpIn, tmpOut);
+        process.on("error", function (error) {
+            callback(error);
+        });
         if (!tmpIn) {
             input.pipe(process.stdin);
         }
         if (!tmpOut) {
             process.stdout.pipe(output);
         }
-        process.on("exit", function () {
+        process.on("exit", function (code,signal) {
+            _this.emit("exit",code,signal);
             callback(null);
         });
     });
@@ -130,7 +129,9 @@ function wrapProcess(tmpIn, tmpOut, processProvider) {
  */
 module.exports = function (IN, OUT) {
     // Expose IN and OUT to the public, but use local variables internally
+    //noinspection JSUnusedGlobalSymbols
     this.IN = IN = IN || "<INPUT>";
+    //noinspection JSUnusedGlobalSymbols
     this.OUT = OUT = OUT || "<OUTPUT>";
     var placeHolderRegex = new RegExp("(" + quotemeta(IN) + "|" + quotemeta(OUT) + ")", "g");
 
@@ -214,7 +215,15 @@ module.exports = function (IN, OUT) {
     this.exec = function (command, options, callback) {
         var parsed = parseString(command, tmp(".in"), tmp(".out"));
         return wrapProcess(parsed.in, parsed.out, function () {
-            var process = cp.exec(parsed.string, options, callback);
+            var process = cp.exec(parsed.string, options, function (err) {
+                if (err) {
+                    // Error-Event is used by 'wrapProcess' to determine that there was an error.
+                    process.emit("error", err);
+                    if (callback) {
+                        callback.apply(this, arguments);
+                    }
+                }
+            });
             this.emit("started", process, parsed.string);
             return process;
         });

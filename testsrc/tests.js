@@ -3,12 +3,11 @@ var ProcessStreams = require("../src/process-streams.js");
 var ps = new ProcessStreams();
 var es = require("event-stream");
 var path = require("path");
-var fs= require("fs");
+var fs = require("fs");
 
 require("long-stack-traces");
 
 var source = ["ab", "b"];
-
 
 function checkResult(test) {
     return function (err, target) {
@@ -17,67 +16,112 @@ function checkResult(test) {
     }
 }
 
-exports.testSpawnPipePipe = function (test) {
-    test.expect(4);
-    es.readArray(source).pipe(ps.spawn("cat").on("started", function(process,command,args) {
-        test.equal("cat",command);
-        test.ok(!args);
-        test.ok(process);
-    })).pipe(es.wait(checkResult(test)));
-};
-exports.testSpawnTmpPipe = function (test) {
-    es.readArray(source).pipe(ps.spawn("cat", ["<INPUT>"])).pipe(es.wait(checkResult(test)));
-};
-exports.testSpawnPipeTmp = function (test) {
-    es.readArray(source).pipe(ps.spawn("tee", ["<OUTPUT>"])).pipe(es.wait(checkResult(test)));
-};
-exports.testSpawnTmpTmp = function (test) {
-    es.readArray(source).pipe(ps.spawn("cp", ["<INPUT>","<OUTPUT>"])).pipe(es.wait(checkResult(test)));
-};
-
-
-exports.testExecFilePipePipe = function (test) {
-    es.readArray(source).pipe(ps.execFile("cat")).pipe(es.wait(checkResult(test)));
-};
-exports.testExecFileTmpPipe = function (test) {
-    es.readArray(source).pipe(ps.execFile("cat", [ps.IN])).pipe(es.wait(checkResult(test)));
-};
-exports.testExecFilePipeTmp = function (test) {
-    es.readArray(source).pipe(ps.execFile("tee", [ps.OUT])).pipe(es.wait(checkResult(test)));
-};
-exports.testExecFileTmpTmp = function (test) {
-    es.readArray(source).pipe(ps.execFile("cp", [ps.IN,ps.OUT])).pipe(es.wait(checkResult(test)));
+var functions = {
+    "Spawn": {
+        func: ps.spawn,
+        params: function (command, args) {
+            return [command, args];
+        }
+    },
+    "ExecFile": {
+        func: ps.execFile,
+        params: function (command, args) {
+            return [command, args];
+        }
+    },
+    "Exec": {
+        func: ps.exec,
+        params: function (command, args) {
+            return [[command].concat(args).join(" ")];
+        }
+    }
 };
 
-exports.testExecPipePipe = function (test) {
-    es.readArray(source).pipe(ps.exec("cat")).pipe(es.wait(checkResult(test)));
+var variants = {
+    "PipePipe": ["cat"],
+    "TmpPipe": ["cat", ["<INPUT>"]],
+    "PipeTmp": ["tee", ["<OUTPUT>"]],
+    "TmpTmp": ["cp", ["<INPUT>", "<OUTPUT>"]]
 };
-exports.testExecTmpPipe = function (test) {
-    es.readArray(source).pipe(ps.exec("cat <INPUT>")).pipe(es.wait(checkResult(test)));
-};
-exports.testExecPipeTmp = function (test) {
-    es.readArray(source).pipe(ps.exec("tee <OUTPUT>")).pipe(es.wait(checkResult(test)));
-};
-exports.testExecTmpTmp = function (test) {
-    es.readArray(source).pipe(ps.exec("cp <INPUT> <OUTPUT>")).pipe(es.wait(checkResult(test)));
-};
+
+Object.keys(functions).forEach(function (f) {
+    var func = functions[f].func;
+    var paramsTransformer = functions[f].params;
+    Object.keys(variants).forEach(function (v) {
+        var params = paramsTransformer.apply(this, variants[v]);
+
+        /**
+         * Test standard usage for each function and variant
+         */
+        exports["testDefault" + f + v] = function (test) {
+            test.expect(1);
+            es.readArray(source).pipe(func.apply(this, params)).pipe(es.wait(function (err, target) {
+                test.equal(target, "abb");
+                test.done();
+            }));
+        };
+
+        /**
+         * Verify the emiting of "started"-event
+         */
+        exports["testStartedEvent" + f + v] = function (test) {
+            test.expect(3);
+            var latch = 2;
+            es.readArray(source).pipe(func.apply(this, params)).on("started", function () {
+                test.ok(arguments[0].hasOwnProperty("pid"), "First argument should be a child_process object.");
+            }).on("exit", function(code,signal) {
+                test.equal(code,0,"Checking return code");
+                test.ok(!signal, "Checking signal parameter");
+                if (--latch==0) { test.done() }
+            }).pipe(es.wait(function () {
+                if (--latch==0) { test.done() }
+            }));
+        };
+
+        /**
+         * Verify the emiting of "started"-event
+         */
+        exports["testErrorEvent" + f + v] = function (test) {
+            test.expect(1);
+            es.readArray(source).pipe(func.call(this, params[0] + "xxxxx", params[1])).on("error", function () {
+                test.ok(true, "First argument should be a child_process object.");
+                test.done();
+            }).pipe(es.wait(function (err, target) {
+            }));
+        };
+
+        /**
+         * An error must be emitted, when the process did not create the output temp file.
+         */
+        if (v.match(/Tmp$/)) {
+            exports["testNoWriteToTmpFile" + f + v] = function (test) {
+                test.expect(1);
+                var params = paramsTransformer.call(this, 'echo', variants[v][1]);
+                es.readArray(source).pipe(func.apply(this, params)).on("error", function () {
+                    test.ok(true, "First argument should be a child_process object.");
+                    test.done();
+                }).pipe(es.wait(function (err, target) {
+                }));
+            };
+        }
+
+    });
+});
 
 
 exports.testChangePlaceHolders = function (test) {
-    var ps = new ProcessStreams("[IN]","[OUT]");
+    var ps = new ProcessStreams("[IN]", "[OUT]");
     es.readArray(source).pipe(ps.exec("cp [IN] [OUT]")).pipe(es.wait(checkResult(test)));
 };
 
-
-
-function wrapper(input,output,callback) {
-    if (typeof(input)==="string") {
+function wrapper(input, output, callback) {
+    if (typeof(input) === "string") {
         input = fs.createReadStream(input);
     }
-    if (typeof(output)==="string") {
+    if (typeof(output) === "string") {
         output = fs.createWriteStream(output);
-        output.on("error",callback);
-        output.on("finish",function() {
+        output.on("error", callback);
+        output.on("finish", function () {
             callback();
         });
     } else {
@@ -87,14 +131,14 @@ function wrapper(input,output,callback) {
 }
 
 exports.testFactoryPipePipe = function (test) {
-    es.readArray(source).pipe(ps.factory(false,false,wrapper)).pipe(es.wait(checkResult(test)));
+    es.readArray(source).pipe(ps.factory(false, false, wrapper)).pipe(es.wait(checkResult(test)));
 };
 exports.testFactoryTmpPipe = function (test) {
-    es.readArray(source).pipe(ps.factory(true,false, wrapper)).pipe(es.wait(checkResult(test)));
+    es.readArray(source).pipe(ps.factory(true, false, wrapper)).pipe(es.wait(checkResult(test)));
 };
 exports.testFactoryPipeTmp = function (test) {
-    es.readArray(source).pipe(ps.factory(true,false, wrapper)).pipe(es.wait(checkResult(test)));
+    es.readArray(source).pipe(ps.factory(true, false, wrapper)).pipe(es.wait(checkResult(test)));
 };
 exports.testFactoryTmpTmp = function (test) {
-    es.readArray(source).pipe(ps.factory(true,false, wrapper)).pipe(es.wait(checkResult(test)));
+    es.readArray(source).pipe(ps.factory(true, false, wrapper)).pipe(es.wait(checkResult(test)));
 };
