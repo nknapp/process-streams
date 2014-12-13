@@ -94,10 +94,12 @@ placeholders resolved to the their actual temporary files.
     var ps = new ProcessStream('[IN]','[OUT]');
     process.stdin.pipe(ps.spawn("cp", ["[IN]","[OUT]"])).on("error", function(err) {
         // Handle errors
+    }).on("input-closed", function(err) {
+       // Handle ECONNRESET and EPIPE processe's stdin
     }).on("started", function(process, command, args) {
-           // If "ps.exec" is called, 'command' contains the whole resolved command and 'args' is undefined.
+       // If "ps.exec" is called, 'command' contains the whole resolved command and 'args' is undefined.
     }).on("exit", function(code, signel) {
-          // see the 'child_process' documentation for the 'exit'-event.
+      // see the 'child_process' documentation for the 'exit'-event.
     }).pipe(process.stdout);
 ```
 
@@ -111,4 +113,4 @@ Changes
 -----
   * When using no in-tempfile, it may happen that the command (e.g. 'head -2') close the input stream before it is
     completely read. This may result in a `EPIPE` or `ECONNRESET` but is not an actual error, since the output is
-    still correct.
+    still correct. This error does not cause an `error`-event anymore, but an `input-closed` event.
