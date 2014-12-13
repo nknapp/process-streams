@@ -28,13 +28,16 @@ the strings `<INPUT>` and `<OUTPUT>`.
 
 Temporary files are always deleted when no longer needed.
 
-For details about function arguments please refer to the api documentation of the `child_process` module:
 
- * [child_process.spawn(command, [args], [options])](http://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options)
- * [child_process.exec(command, [options], callback)](http://nodejs.org/api/child_process.html#child_process_child_process_exec_command_options_callback)
- * [child_process.execFile(file, [args], [options], [callback])](http://nodejs.org/api/child_process.html#child_process_child_process_execfile_file_args_options_callback)
+`ps.spawn(command, [args], [options])`
+-------------------------------------------
 
-Additionally there is another function
+For details about function arguments please refer to the api documentation of
+[child_process.spawn(command, [args], [options])](http://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options)
+
+*Note: I've taken `exec`and `execFile` from the documentation since they don't seem to work the way I have expected them to work,
+especially if you provide a callback-function. Pleas use `spawn`... I will evaluate what to do with the other two.*
+
 
 
 `ps.factory(useTmpIn, useTmpOut, callback)`
@@ -99,3 +102,13 @@ placeholders resolved to the their actual temporary files.
 ```
 
 *Please note that this api is still experimental. Feedback is welcome, although I cannot guarantee any response times at the moment.*
+
+
+Changes
+=======
+
+0.4.2
+-----
+  * When using no in-tempfile, it may happen that the command (e.g. 'head -2') close the input stream before it is
+    completely read. This may result in a `EPIPE` or `ECONNRESET` but is not an actual error, since the output is
+    still correct.

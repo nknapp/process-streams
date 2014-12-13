@@ -61,7 +61,7 @@ function createStream(tmpIn, tmpOut, callback) {
                                     fs.unlink(tmpOut);
                                 });
                             } else {
-                                result.emit("error",new Error("Child process has not created the output-temp file"));
+                                result.emit("error", new Error("Child process has not created the output-temp file"));
                             }
                         });
                     }
@@ -110,13 +110,29 @@ function wrapProcess(tmpIn, tmpOut, processProvider) {
             callback(error);
         });
         if (!tmpIn) {
-            input.pipe(process.stdin);
+            input.pipe(process.stdin).on("error", function (error) {
+                if (error.code === 'ECONNRESET' && error.syscall === 'read') {
+                    // This can happen if the process closes stdin before all data has been read
+                    // e.g. in ps.spawn("exiftool", ["-s3", "-MimeType", "-fast","-"]);
+                    // This is not necessarily an error, since the output is still valid
+                    _this.emit("input-closed",error);
+                    return;
+                }
+                if (error.code = 'EPIPE' && error.syscall === 'write') {
+                    // This also can happen if the process closes stdin before all data has been read
+                    // e.g. in ps.spawn("head", ["-2"]);
+                    // This is not necessarily an error, since the output is still valid
+                    _this.emit("input-closed",error);
+                    return;
+                }
+                stream.emit("error",error);
+            });
         }
         if (!tmpOut) {
             process.stdout.pipe(output);
         }
-        process.on("exit", function (code,signal) {
-            _this.emit("exit",code,signal);
+        process.on("exit", function (code, signal) {
+            _this.emit("exit", code, signal);
             callback(null);
         });
     });

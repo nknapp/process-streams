@@ -142,3 +142,5 @@ exports.testFactoryPipeTmp = function (test) {
 exports.testFactoryTmpTmp = function (test) {
     es.readArray(source).pipe(ps.factory(true, false, wrapper)).pipe(es.wait(checkResult(test)));
 };
+
+
