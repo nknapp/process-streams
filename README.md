@@ -1,5 +1,5 @@
 Motivation
-==========
+----------
 
 The goal of this small package is to provide a interface for streaming data to
 and from child-processes. It may be possible to stream data to a process via stdout
@@ -14,7 +14,7 @@ so data must be stored in a temporary file prior to calling ffmpeg.
 
 
 Overview
-========
+--------
 
 ProcessStreams provides the methods `exec`, `execFile` and `spawn` from the `child_process` with the same arguments.
 The return value however is always a through-stream. The command line arguments are examined for occurences of
@@ -28,28 +28,27 @@ the strings `<INPUT>` and `<OUTPUT>`.
 
 Temporary files are always deleted when no longer needed.
 
+Functions
+---------
 
-`ps.spawn(command, [args], [options])`
--------------------------------------------
+#### `ps.spawn(command, [args], [options])`
 
 For details about function arguments please refer to the api documentation of
 [child_process.spawn(command, [args], [options])](http://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options)
 
 
-`ps.exec(command, [options], callback)`
---------------------------------------------------
+#### `ps.exec(command, [options], callback)`
 
 For details about function arguments please refer to the api documentation of
 [child_process.exec(command, [options], callback)](http://nodejs.org/api/child_process.html#child_process_child_process_exec_command_options_callback)
 
 
-`ps.execFile(file, [args], [options], [callback])`
--------------------------------------------------------------
+#### `ps.execFile(file, [args], [options], [callback])`
+
 For details about function arguments please refer to the api documentation of
 [child_process.execFile(file, [args], [options], [callback])](http://nodejs.org/api/child_process.html#child_process_child_process_execfile_file_args_options_callback)
 
-`ps.factory(useTmpIn, useTmpOut, callback)`
--------------------------------------------
+#### `ps.factory(useTmpIn, useTmpOut, callback)`
 
 This function uses the provided callback to connect input and output of the resulting stream. `useTmpIn` and `useTmpOut` are booleans that define which
 parts of the stream temp should use temp files.
@@ -115,16 +114,15 @@ placeholders resolved to the their actual temporary files.
 
 
 Changes
-=======
+--------
 
-0.4.2
------
+####0.4.2
   * When using no in-tempfile, it may happen that the command (e.g. 'head -2') close the input stream before it is
     completely read. This may result in a `EPIPE` or `ECONNRESET` but is not an actual error, since the output is
     still correct. This error does not cause an `error`-event anymore, but an `input-closed` event.
 
-0.4.3
------
+####0.4.3
+
   * Fixed error handling for `exec` and `execFile`
   * Callback for `exec` and `execFile` is now forwarded to `child_process`
     at the correct location, so that callbacks actually get called.
