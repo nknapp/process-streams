@@ -115,17 +115,17 @@ function wrapProcess(tmpIn, tmpOut, processProvider) {
                     // This can happen if the process closes stdin before all data has been read
                     // e.g. in ps.spawn("exiftool", ["-s3", "-MimeType", "-fast","-"]);
                     // This is not necessarily an error, since the output is still valid
-                    _this.emit("input-closed",error);
+                    _this.emit("input-closed", error);
                     return;
                 }
                 if (error.code = 'EPIPE' && error.syscall === 'write') {
                     // This also can happen if the process closes stdin before all data has been read
                     // e.g. in ps.spawn("head", ["-2"]);
                     // This is not necessarily an error, since the output is still valid
-                    _this.emit("input-closed",error);
+                    _this.emit("input-closed", error);
                     return;
                 }
-                stream.emit("error",error);
+                stream.emit("error", error);
             });
         }
         if (!tmpOut) {
@@ -209,12 +209,11 @@ module.exports = function (IN, OUT) {
      * @param command The command to run
      * @param args the arguments to be passed to the command
      * @param [options] options as in "child_process.spawn"
-     * @param [callback] callback as in "child_process.spawn"
      */
-    this.spawn = function (command, args, options, callback) {
+    this.spawn = function (command, args, options) {
         var parsed = parseArgs(args, tmp(".in"), tmp(".out"));
         return wrapProcess(parsed.in, parsed.out, function () {
-            var process = cp.spawn(command, parsed.args, options, callback);
+            var process = cp.spawn(command, parsed.args, options);
             this.emit("started", process, command, parsed.args);
             return process;
         });
@@ -231,13 +230,19 @@ module.exports = function (IN, OUT) {
     this.exec = function (command, options, callback) {
         var parsed = parseString(command, tmp(".in"), tmp(".out"));
         return wrapProcess(parsed.in, parsed.out, function () {
+            var resultStream = this;
+            if (typeof options === 'function') {
+                callback = options;
+                options = null;
+            }
             var process = cp.exec(parsed.string, options, function (err) {
+                // Forward errors in the callback as "error"-event to the stream
+                // For some reason, this is necessary in "exec" but not in "execFile"
                 if (err) {
-                    // Error-Event is used by 'wrapProcess' to determine that there was an error.
-                    process.emit("error", err);
-                    if (callback) {
-                        callback.apply(this, arguments);
-                    }
+                    resultStream.emit("error", err);
+                }
+                if (callback) {
+                    callback.apply(this, arguments);
                 }
             });
             this.emit("started", process, parsed.string);
@@ -257,6 +262,10 @@ module.exports = function (IN, OUT) {
     this.execFile = function (command, args, options, callback) {
         var parsed = parseArgs(args, tmp(".in"), tmp(".out"));
         return wrapProcess(parsed.in, parsed.out, function () {
+            if (typeof options === 'function') {
+                callback = options;
+                options = null;
+            }
             var process = cp.execFile(command, parsed.args, options, callback);
             this.emit("started", process, parsed.args);
             return process;

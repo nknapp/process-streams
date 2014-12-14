@@ -35,10 +35,18 @@ Temporary files are always deleted when no longer needed.
 For details about function arguments please refer to the api documentation of
 [child_process.spawn(command, [args], [options])](http://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options)
 
-*Note: I've taken `exec`and `execFile` from the documentation since they don't seem to work the way I have expected them to work,
-especially if you provide a callback-function. Pleas use `spawn`... I will evaluate what to do with the other two.*
+
+`ps.exec(command, [options], callback)`
+--------------------------------------------------
+
+For details about function arguments please refer to the api documentation of
+[child_process.exec(command, [options], callback)](http://nodejs.org/api/child_process.html#child_process_child_process_exec_command_options_callback)
 
 
+`ps.execFile(file, [args], [options], [callback])`
+-------------------------------------------------------------
+For details about function arguments please refer to the api documentation of
+[child_process.execFile(file, [args], [options], [callback])](http://nodejs.org/api/child_process.html#child_process_child_process_execfile_file_args_options_callback)
 
 `ps.factory(useTmpIn, useTmpOut, callback)`
 -------------------------------------------
@@ -46,8 +54,8 @@ especially if you provide a callback-function. Pleas use `spawn`... I will evalu
 This function uses the provided callback to connect input and output of the resulting stream. `useTmpIn` and `useTmpOut` are booleans that define which
 parts of the stream temp should use temp files.
 `callback` has the signature `function(input, output, callback)`. "input" and "output" are either streams of paths of temporary files. The callback must
- be called when data is available for output. If "tmpUseOut" is `false`, this can be called immediately. It "tmpUseOut" is `true` it must be called, when the
-  output tempfile has completely been written to.
+be called when data is available for output. If "tmpUseOut" is `false`, this can be called immediately. It "tmpUseOut" is `true` it must be called, when the
+output tempfile has completely been written to.
 
 Simple Examples
 --------
@@ -114,3 +122,10 @@ Changes
   * When using no in-tempfile, it may happen that the command (e.g. 'head -2') close the input stream before it is
     completely read. This may result in a `EPIPE` or `ECONNRESET` but is not an actual error, since the output is
     still correct. This error does not cause an `error`-event anymore, but an `input-closed` event.
+
+0.4.3
+-----
+  * Fixed error handling for `exec` and `execFile`
+  * Callback for `exec` and `execFile` is now forwarded to `child_process`
+    at the correct location, so that callbacks actually get called.
+
