@@ -127,3 +127,7 @@ Changes
   * Callback for `exec` and `execFile` is now forwarded to `child_process`
     at the correct location, so that callbacks actually get called.
 
+####0.4.4
+
+  * Added license information to package.json
+
