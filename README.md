@@ -110,11 +110,14 @@ placeholders resolved to the their actual temporary files.
     }).pipe(process.stdout);
 ```
 
-*Feedback is welcome, although I cannot guarantee any response times at the moment.*
+*As of version 1.0.0 the API will only be changed in accordance to semver. Feedback is welcome, although I cannot guarantee any response times at the moment.*
 
 
 Changes
 --------
+#### 1.0.0
+
+  * There are no API changes in this version, but I have decided that the API should be stable now. Thus, version 1.0.0
 
 #### 0.4.5
 
