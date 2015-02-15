@@ -110,24 +110,29 @@ placeholders resolved to the their actual temporary files.
     }).pipe(process.stdout);
 ```
 
-*Please note that this api is still experimental. Feedback is welcome, although I cannot guarantee any response times at the moment.*
+*Feedback is welcome, although I cannot guarantee any response times at the moment.*
 
 
 Changes
 --------
 
-####0.4.2
-  * When using no in-tempfile, it may happen that the command (e.g. 'head -2') close the input stream before it is
-    completely read. This may result in a `EPIPE` or `ECONNRESET` but is not an actual error, since the output is
-    still correct. This error does not cause an `error`-event anymore, but an `input-closed` event.
+#### 0.4.5
 
-####0.4.3
+  * All testcases should now run after `npm install`. All test-data is provided in dependencies (even for testECONRESET.js).
+    `package.json` is now complete, the README updated.
+
+#### 0.4.4
+
+  * Added license information to package.json
+
+#### 0.4.3
 
   * Fixed error handling for `exec` and `execFile`
   * Callback for `exec` and `execFile` is now forwarded to `child_process`
     at the correct location, so that callbacks actually get called.
 
-####0.4.4
-
-  * Added license information to package.json
+#### 0.4.2
+  * When using no in-tempfile, it may happen that the command (e.g. 'head -2') close the input stream before it is
+    completely read. This may result in a `EPIPE` or `ECONNRESET` but is not an actual error, since the output is
+    still correct. This error does not cause an `error`-event anymore, but an `input-closed` event.
 

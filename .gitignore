@@ -1,2 +1,2 @@
-process-streams.iml
-testsrc/testdata/largeM2tsFile.mts
+*.iml
+node_modules
