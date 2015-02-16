@@ -22,7 +22,7 @@
     "nodeunit": "^0.9.0",
     "request": "^2.51.0",
     "tar": "^1.0.3",
-    "video-testdata": "^1"
+    "video-testdata-loader": "^1.0.0"
   },
   "author": "Nils Knappmeier <npm@knappi.org> (http://www.knappi.org)",
   "license": "MIT"
