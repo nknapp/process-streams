@@ -115,6 +115,11 @@ placeholders resolved to the their actual temporary files.
 
 Changes
 --------
+#### 1.0.1
+
+  * Testcase-fixes for iojs 1.2 and node 0.12
+  * Changed some dependencies to stable versions of other packages
+
 #### 1.0.0
 
   * There are no API changes in this version, but I have decided that the API should be stable now. Thus, version 1.0.0
