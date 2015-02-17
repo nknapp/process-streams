@@ -8,7 +8,7 @@
     "url": "git://github.com/nknapp/process-streams.git"
   },
   "dependencies": {
-    "duplexer2": "0.0.2",
+    "duplex-maker": "^1.0.0",
     "quotemeta": "0.0.0",
     "tempfile": "^1.1.0"
   },
@@ -17,11 +17,12 @@
     "test": "./node_modules/nodeunit/bin/nodeunit testsrc/"
   },
   "devDependencies": {
+    "clarify": "^1.0.5",
     "event-stream": "^3.2.2",
-    "long-stack-traces": "^0.1.2",
     "nodeunit": "^0.9.0",
     "request": "^2.51.0",
     "tar": "^1.0.3",
+    "trace": "^1.1.0",
     "video-testdata-loader": "^1.0.0"
   },
   "author": "Nils Knappmeier <npm@knappi.org> (http://www.knappi.org)",

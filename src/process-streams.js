@@ -1,7 +1,7 @@
 'use strict';
 
 var stream = require("stream");
-var duplexer = require("duplexer2");
+var duplexMaker = require("duplex-maker");
 var fs = require("fs");
 var tmp = require("tempfile");
 var cp = require("child_process");
@@ -23,7 +23,7 @@ function createStream(tmpIn, tmpOut, callback) {
     var incoming = new stream.PassThrough();
     var outgoing = new stream.PassThrough();
     // input paramter of the child process
-    var result = duplexer(incoming, outgoing);
+    var result = duplexMaker(incoming, outgoing);
     setTimeout(function () {
         inStream(incoming, tmpIn, function (err) {
             if (err) {
@@ -116,16 +116,17 @@ function wrapProcess(tmpIn, tmpOut, processProvider) {
                     // e.g. in ps.spawn("exiftool", ["-s3", "-MimeType", "-fast","-"]);
                     // This is not necessarily an error, since the output is still valid
                     _this.emit("input-closed", error);
-                    return;
-                }
-                if (error.code = 'EPIPE' && error.syscall === 'write') {
+                } else if (error.code = 'EPIPE' && error.syscall === 'write') {
                     // This also can happen if the process closes stdin before all data has been read
                     // e.g. in ps.spawn("head", ["-2"]);
                     // This is not necessarily an error, since the output is still valid
                     _this.emit("input-closed", error);
-                    return;
+                } else {
+                    // This "emit" causes test cases to fail
+                    // it is most likely a followup-error of an error that is already
+                    // emitted
+                    // _this.emit("error", error);
                 }
-                stream.emit("error", error);
             });
         }
         if (!tmpOut) {

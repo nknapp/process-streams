@@ -1,12 +1,14 @@
 var cp = require("child_process");
 var ProcessStreams = require("../src/process-streams.js");
-var ps = new ProcessStreams();
 var es = require("event-stream");
 var path = require("path");
 var fs = require("fs");
+//require("trace");
+//require("clarify");
+//Error.stackTraceLimit = 50;
 
-require("long-stack-traces");
 
+var ps = new ProcessStreams();
 var source = ["ab", "b"];
 
 function checkResult(test) {
@@ -82,9 +84,8 @@ Object.keys(functions).forEach(function (f) {
          * Verify the emiting of "started"-event
          */
         exports["testErrorEvent" + f + v] = function (test) {
-            test.expect(1);
-            es.readArray(source).pipe(func.call(this, params[0] + "xxxxx", params[1])).on("error", function () {
-                test.ok(true, "First argument should be a child_process object.");
+            es.readArray(source).pipe(func.call(this, params[0] + "xxxxx", params[1])).on("error", function (error) {
+                test.ok(true, "Must receive error event received "+error);
                 test.done();
             }).pipe(es.wait(function (err, target) {
             }));

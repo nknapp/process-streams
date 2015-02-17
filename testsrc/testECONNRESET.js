@@ -2,6 +2,10 @@ var ProcessStreams = require("../src/process-streams.js");
 var fs = require("fs");
 var es = require("event-stream");
 var path = require("path");
+//require("trace");
+//require("clarify");
+//Error.stackTraceLimit = 50;
+
 var ps = new ProcessStreams();
 
 
