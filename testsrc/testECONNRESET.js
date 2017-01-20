@@ -19,7 +19,13 @@ module.exports.testECONNRESET = function (test) {
   input
     .pipe(spawn)
     .on('input-closed', function (error) {
-      test.equal(error.code, 'ECONNRESET')
+      // It's difficult to create a test that exactly provokes an
+      // ECONNRESET, so we also accept EPIPE here
+      if (error.code === 'EPIPE') {
+        test.equal(error.code, 'EPIPE')
+      } else {
+        test.equal(error.code, 'ECONNRESET')
+      }
     })
     .pipe(es.wait(function (err, output) {
       // Delay test for a while to let the input-closed event happen
