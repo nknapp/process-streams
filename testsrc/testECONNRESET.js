@@ -20,7 +20,7 @@ module.exports.testECONNRESET = function (test) {
       .pipe(es.wait(function (err, output) {
         // Delay test for a while to let the input-closed event happen
         setTimeout(test.done, 50)
-        test.equal(err,null)
+        test.equal(err, null)
         test.deepEqual(output, 'video/m2ts\n', 'Checking returned result')
       }))
   })
