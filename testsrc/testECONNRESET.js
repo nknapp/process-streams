@@ -1,5 +1,4 @@
 var ProcessStreams = require('../src/process-streams.js')
-var fs = require('fs')
 var es = require('event-stream')
 require('trace-and-clarify-if-possible')
 
@@ -7,11 +6,11 @@ var ps = new ProcessStreams()
 
 module.exports.testECONNRESET = function (test) {
   test.expect(3)
-  var input = require('event-stream').readable(function read(count, callback) {
-    if (count>100000) {
+  var input = require('event-stream').readable(function read (count, callback) {
+    if (count > 100000000) {
       return this.emit('end')
     }
-    this.emit('data',' '+count)
+    this.emit('data', ' ' + count)
     callback()
   })
 
@@ -20,7 +19,6 @@ module.exports.testECONNRESET = function (test) {
   input
     .pipe(spawn)
     .on('input-closed', function (error) {
-      console.log("input-closed", error)
       test.equal(error.code, 'ECONNRESET')
     })
     .pipe(es.wait(function (err, output) {
