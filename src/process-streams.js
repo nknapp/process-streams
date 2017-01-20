@@ -24,7 +24,7 @@ function createStream (tmpIn, tmpOut, callback) {
   // input paramter of the child process
   var result = duplexMaker(incoming, outgoing)
   setTimeout(function () {
-      inStream(incoming, tmpIn, function (err) {
+    inStream(incoming, tmpIn, function (err) {
       if (err) {
         result.emit('error', err)
       } else {
