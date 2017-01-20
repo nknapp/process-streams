@@ -7,23 +7,21 @@ var ps = new ProcessStreams()
 
 module.exports.testECONNRESET = function (test) {
   test.expect(3)
-  require('video-testdata-loader')('panasonic-lumix-dmc-zx3.tar', 'PRIVATE/AVCHD/BDMV/STREAM/00000.MTS', function (err, file) {
-    if (err) throw err
-    var input = fs.createReadStream(file)
-    var spawn = ps.spawn('exiftool', ['-s3', '-MimeType', '-fast', '-'])
-    spawn.setEncoding('utf-8')
-    input
-      .pipe(spawn)
-      .on('input-closed', function (error) {
-        test.equal(error.code, 'ECONNRESET')
-      })
-      .pipe(es.wait(function (err, output) {
-        // Delay test for a while to let the input-closed event happen
-        setTimeout(test.done, 50)
-        test.equal(err, null)
-        test.deepEqual(output, 'video/m2ts\n', 'Checking returned result')
-      }))
-  })
+  var input = fs.createReadStream('testsrc/fixtures/econnreset.js')
+  var spawn = ps.spawn('node', ['testsrc/fixtures/econnreset.js'])
+  spawn.setEncoding('utf-8')
+  input
+    .pipe(spawn)
+    .on('input-closed', function (error) {
+      console.log("input-closed", error)
+      test.equal(error.code, 'ECONNRESET')
+    })
+    .pipe(es.wait(function (err, output) {
+      // Delay test for a while to let the input-closed event happen
+      setTimeout(test.done, 50)
+      test.equal(err, null)
+      test.equal(output, 'hello', 'Checking returned result')
+    }))
 }
 
 module.exports.testEPIPE = function (test) {
