@@ -14,7 +14,12 @@
   },
   "main": "src/process-streams.js",
   "scripts": {
-    "test": "./node_modules/nodeunit/bin/nodeunit testsrc/"
+    "test": "./node_modules/nodeunit/bin/nodeunit testsrc/",
+    "thought": "thought run -a",
+    "prethoughtcheck": "thought --version || npm -g install thought",
+    "thoughtcheck": "thought check-engines",
+    "version": "npm run thought",
+    "preversion": "npm run thoughtcheck"
   },
   "devDependencies": {
     "clarify": "^1.0.5",
