@@ -7,7 +7,14 @@ var ps = new ProcessStreams()
 
 module.exports.testECONNRESET = function (test) {
   test.expect(3)
-  var input = fs.createReadStream('testsrc/fixtures/econnreset.js')
+  var input = require('event-stream').readable(function read(count, callback) {
+    if (count>100000) {
+      return this.emit('end')
+    }
+    this.emit('data',' '+count)
+    callback()
+  })
+
   var spawn = ps.spawn('node', ['testsrc/fixtures/econnreset.js'])
   spawn.setEncoding('utf-8')
   input
