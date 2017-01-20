@@ -14,7 +14,7 @@
   },
   "main": "src/process-streams.js",
   "scripts": {
-    "test": "./node_modules/nodeunit/bin/nodeunit testsrc/",
+    "test": "./node_modules/nodeunit/bin/nodeunit testsrc/ && standard",
     "thought": "thought run -a",
     "prethoughtcheck": "thought --version || npm -g install thought",
     "thoughtcheck": "thought check-engines",
@@ -28,6 +28,7 @@
     "request": "^2.51.0",
     "tar": "^1.0.3",
     "trace": "^1.1.0",
+    "trace-and-clarify-if-possible": "^1.0.0",
     "video-testdata-loader": "^1.0.0"
   },
   "author": "Nils Knappmeier <npm@knappi.org> (http://www.knappi.org)",
