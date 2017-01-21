@@ -94,7 +94,6 @@ describe('The ProcessStreams', function () {
       it('testErrorEvent' + f + v, function (done) {
         expect(1).check(done)
         es.readArray(source).pipe(func.call(this, params[0] + 'xxxxx', params[1])).on('error', function (error) {
-          console.log('cde')
           expect(error, 'Must receive error event but received ' + error).to.be.ok.mark()
         }).pipe(es.wait(function (err, target) {
           expect(err, 'Must not reach this block').to.be.null
