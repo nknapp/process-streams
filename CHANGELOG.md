@@ -1,5 +1,10 @@
-Changes
---------
+Changelog
+---------
+
+This project adheres to [Semantic Versioning](http://semver.org/).
+
+<a name="current-release"></a>
+
 #### 1.0.1
 
   * Testcase-fixes for iojs 1.2 and node 0.12
