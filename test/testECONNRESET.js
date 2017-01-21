@@ -8,10 +8,11 @@ chai.use(checkmark)
 
 /* global it */
 /* global describe */
+/* global xit */
 
 var ps = new ProcessStreams()
 
-function largeStream() {
+function largeStream () {
   return require('event-stream').readable(function read (count, callback) {
     if (count > 100000000) {
       return this.emit('end')
@@ -20,7 +21,6 @@ function largeStream() {
     callback()
   })
 }
-
 
 describe('the input-closed event', function () {
   it('should be emitted on ECONNRESET', function (done) {
@@ -54,7 +54,7 @@ describe('the input-closed event', function () {
     spawn.setEncoding('utf-8')
 
     es.readArray(['1\n', '2\n', '2\n', '2\n'])
-      .pipe(spawn2)
+      .pipe(spawn)
       .on('input-closed', function (error) {
         expect(error.code).to.equal('EPIPE').mark()
       })
