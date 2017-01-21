@@ -2,15 +2,17 @@ var ProcessStreams = require('../src/process-streams.js')
 var es = require('event-stream')
 require('trace-and-clarify-if-possible')
 var chai = require('chai')
-var expect = chai.expect;
-var checkmark = require("chai-checkmark")
+var expect = chai.expect
+var checkmark = require('chai-checkmark')
 chai.use(checkmark)
+
+/* global it */
+/* global describe */
 
 var ps = new ProcessStreams()
 
-describe('the input-closed event', function() {
-
-  it('should be emitted on ECONNRESET', function(done) {
+describe('the input-closed event', function () {
+  it('should be emitted on ECONNRESET', function (done) {
     expect(3).checks(done)
     var input = require('event-stream').readable(function read (count, callback) {
       if (count > 100000000) {
@@ -38,10 +40,9 @@ describe('the input-closed event', function() {
         expect(err).to.equal(null).mark()
         expect(output).to.equal('hello', 'Checking returned result').mark()
       }))
-
   })
 
-  it('should be emitted for EPIPE-events',function (done) {
+  it('should be emitted for EPIPE-events', function (done) {
     expect(3).checks(done)
 
     var spawn2 = ps.spawn('head', ['-2'])

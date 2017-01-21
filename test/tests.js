@@ -3,16 +3,18 @@ var es = require('event-stream')
 var fs = require('fs')
 var chai = require('chai')
 var expect = chai.expect
-var assert = chai.assert
 var checkmark = require('chai-checkmark')
 chai.use(checkmark)
 require('trace-and-clarify-if-possible')
 
+/* global it */
+/* global describe */
+
 var ps = new ProcessStreams()
 var source = ['ab', 'b']
 
-function checkResult(done) {
-  expect(2).checks(done);
+function checkResult (done) {
+  expect(2).checks(done)
   return function (err, target) {
     expect(err).to.be.null.mark()
     expect(target).to.equal('abb').mark()
@@ -47,8 +49,7 @@ var variants = {
   'TmpTmp': ['cp', ['<INPUT>', '<OUTPUT>']]
 }
 
-describe("The ProcessStreams", function () {
-
+describe('The ProcessStreams', function () {
   Object.keys(functions).forEach(function (f) {
     var func = functions[f].func
     var paramsTransformer = functions[f].params
@@ -60,7 +61,7 @@ describe("The ProcessStreams", function () {
        */
       it('testDefault' + f + v, function (done) {
         expect(2).checks(done)
-        const spawn = func.apply(ps, params);
+        const spawn = func.apply(ps, params)
         spawn.setEncoding('utf-8')
 
         es.readArray(source)
@@ -93,10 +94,10 @@ describe("The ProcessStreams", function () {
       it('testErrorEvent' + f + v, function (done) {
         expect(1).check(done)
         es.readArray(source).pipe(func.call(this, params[0] + 'xxxxx', params[1])).on('error', function (error) {
-          console.log("cde")
+          console.log('cde')
           expect(error, 'Must receive error event but received ' + error).to.be.ok.mark()
         }).pipe(es.wait(function (err, target) {
-          expect(err, "Must not reach this block").to.be.null
+          expect(err, 'Must not reach this block').to.be.null
         }))
       })
 
@@ -117,16 +118,16 @@ describe("The ProcessStreams", function () {
     })
   })
 
-  it("testChangePlaceHolders", function (test) {
+  it('testChangePlaceHolders', function (test) {
     var ps = new ProcessStreams('[IN]', '[OUT]')
     expect(ps.IN, 'Checking input placeholder').to.equal('[IN]')
     expect(ps.OUT, 'Checking output placeholder').to.equal('[OUT]')
-    const spawn = ps.exec('cp [IN] [OUT]');
-    spawn.setEncoding("utf-8")
+    const spawn = ps.exec('cp [IN] [OUT]')
+    spawn.setEncoding('utf-8')
     es.readArray(source).pipe(spawn).pipe(es.wait(checkResult(test)))
   })
 
-  function wrapper(input, output, callback) {
+  function wrapper (input, output, callback) {
     if (typeof (input) === 'string') {
       input = fs.createReadStream(input)
     }
@@ -142,25 +143,27 @@ describe("The ProcessStreams", function () {
     input.pipe(output)
   }
 
-  it("testFactoryPipePipe", function (done) {
-    const spawn = ps.factory(false, false, wrapper);
-    spawn.setEncoding("utf-8")
-    es.readArray(source).pipe(spawn).pipe(es.wait(checkResult(done)))
-  })
-  it("testFactoryTmpPipe", function (done) {
-    const spawn = ps.factory(true, false, wrapper);
-    spawn.setEncoding("utf-8")
-    es.readArray(source).pipe(spawn).pipe(es.wait(checkResult(done)))
-  })
-  it("testFactoryPipeTmp", function (done) {
-    const spawn = ps.factory(true, false, wrapper);
-    spawn.setEncoding("utf-8")
-    es.readArray(source).pipe(spawn).pipe(es.wait(checkResult(done)))
-  })
-  it("testFactoryTmpTmp", function (done) {
-    const spawn = ps.factory(true, false, wrapper);
-    spawn.setEncoding("utf-8")
+  it('testFactoryPipePipe', function (done) {
+    const spawn = ps.factory(false, false, wrapper)
+    spawn.setEncoding('utf-8')
     es.readArray(source).pipe(spawn).pipe(es.wait(checkResult(done)))
   })
 
+  it('testFactoryTmpPipe', function (done) {
+    const spawn = ps.factory(true, false, wrapper)
+    spawn.setEncoding('utf-8')
+    es.readArray(source).pipe(spawn).pipe(es.wait(checkResult(done)))
+  })
+
+  it('testFactoryPipeTmp', function (done) {
+    const spawn = ps.factory(true, false, wrapper)
+    spawn.setEncoding('utf-8')
+    es.readArray(source).pipe(spawn).pipe(es.wait(checkResult(done)))
+  })
+
+  it('testFactoryTmpTmp', function (done) {
+    const spawn = ps.factory(true, false, wrapper)
+    spawn.setEncoding('utf-8')
+    es.readArray(source).pipe(spawn).pipe(es.wait(checkResult(done)))
+  })
 })
