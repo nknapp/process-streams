@@ -1,13 +1,12 @@
-<!-- part name='templates/README.md' -->
 # process-streams 
 
 [![NPM version](https://badge.fury.io/js/process-streams.svg)](http://badge.fury.io/js/process-streams)
-[![Build Status](https://travis-ci.org/nknapp/process-streams.svg?branch=master)](https://travis-ci.org/nknapp/process-streams)
+[![Travis Build Status](https://travis-ci.org/nknapp/process-streams.svg?branch=master)](https://travis-ci.org/nknapp/process-streams)
 [![Coverage Status](https://img.shields.io/coveralls/nknapp/process-streams.svg)](https://coveralls.io/r/nknapp/process-streams)
+
 
 > Wrapper for piping data into and out of child processes
 
-<!-- part name='partials/overview.md' -->
 Motivation
 ----------
 
@@ -30,133 +29,147 @@ ProcessStreams provides the methods `exec`, `execFile` and `spawn` from the `chi
 The return value however is always a through-stream. The command line arguments are examined for occurences of
 the strings `<INPUT>` and `<OUTPUT>`.
 
-* If `<INPUT>` is present, the stream input is piped into a temporary file and `<INPUT>` is replaced by its filename.
-* If `<OUTPUT>` is present, it is replaced by the name of a temporary file and the contents of this file is
-  used as stream output for the resulting stream.
-* If `<INPUT>` or `<OUTPUT>` are not present, the stream input is directly piped to the child processes stdin
-  (or the child processes stdout is piped to the stream output).
+ * If `<INPUT>` is present, the stream input is piped into a temporary file and `<INPUT>` is replaced by its filename.
+ * If `<OUTPUT>` is present, it is replaced by the name of a temporary file and the contents of this file is
+ used as stream output for the resulting stream.
+ * If `<INPUT>` or `<OUTPUT>` are not present, the stream input is directly piped to the child processes stdin
+ (or the child processes stdout is piped to the stream output).
 
 Temporary files are always deleted when no longer needed.
 
-<!-- /part -->
-
-<!-- part name='partials/installation.md' -->
 # Installation
 
 ```
 npm install process-streams
 ```
-<!-- /part -->
 
-<!-- part name='partials/usage.md' -->
 Simple Examples
 --------
 
-The following examples actually only pipe data from stdin to stdout, but via child processes with different temp-file options.
+The following examples actually only pipes data to stdout, but via child processes with different temp-file options.
 
-``` js
-var ProcessStream = require("process-streams");
+```js
+var stringToStream = require('string-to-stream')
+
+var ProcessStream = require("../");
 var ps = new ProcessStream();
+
+
+// This basically pipes the stream as-is to stdout
+// through multiple variations of process-streams
+
 // Temporary files for input and output
-process.stdin.pipe(ps.exec("cp <INPUT> <OUTPUT>")).pipe(process.stdout);
-    process.stdin.pipe(ps.spawn("cp",["<INPUT>","<OUTPUT>"])).pipe(process.stdout);
-        process.stdin.pipe(ps.execFile("cp",["<INPUT>","<OUTPUT>"])).pipe(process.stdout);
+stringToStream('hello\n')
+  .pipe(ps.exec("cp <INPUT> <OUTPUT>"))
+  .pipe(ps.spawn("cp", ["<INPUT>", "<OUTPUT>"]))
+  .pipe(ps.execFile("cp", ["<INPUT>", "<OUTPUT>"]))
 
-            // Stream input, use temp-file for output
-            process.stdin.pipe(ps.spawn("tee",["<OUTPUT>"])).pipe(process.stdout);
+  // Stream input, use temp-file for output
+  .pipe(ps.spawn("tee", ["<OUTPUT>"]))
 
-                // Temp-file for input, Stream for output
-                process.stdin.pipe(ps.spawn("cat ",["<INPUT>"])).pipe(process.stdout);
+  // Temp-file for input, Stream for output
+  .pipe(ps.spawn("cat", ["<INPUT>"]))
 
-                // Pipe both sides
-                process.stdin.pipe(ps.spawn("cat")).pipe(process.stdout);
-                ```
+  // Pipe both sides
+  .pipe(ps.spawn("cat"))
 
-                Changing the placeholder tokens
-                -------------------------------
-                The tokens `<INPUT>` and `<OUTPUT>` can be changed:
+  // Result to stdout
+  .pipe(process.stdout);
+```
 
-                    ``` js
-                    var ProcessStream = require("process-streams");
-                    var ps = new ProcessStream('[IN]','[OUT]');
-                    process.stdin.pipe(ps.exec("cp [IN] [OUT]")).pipe(process.stdout);
-                    ```
+Output:
 
-                    Events
-                    ------
-                    Process errors (such as not finding the executable file) are emitted on the resulting stream as `'error'` event.
-                    The `'started'` event is emitted when the is started. Its first argument is the child-process object, second and
-                    third arguments are the `command` and `args` passed to `ps.exec`, `ps.spawn` or `ps.execFile`), but with the
-                    placeholders resolved to the their actual temporary files.
-
-                    ``` js
-                    var ProcessStream = require("process-streams");
-                    var ps = new ProcessStream('[IN]','[OUT]');
-                    process.stdin.pipe(ps.spawn("cp", ["[IN]","[OUT]"])).on("error", function(err) {
-                    // Handle errors
-                    }).on("input-closed", function(err) {
-                    // Handle ECONNRESET and EPIPE processe's stdin
-                    }).on("started", function(process, command, args) {
-                    // If "ps.exec" is called, 'command' contains the whole resolved command and 'args' is undefined.
-                    }).on("exit", function(code, signel) {
-                    // see the 'child_process' documentation for the 'exit'-event.
-                    }).pipe(process.stdout);
-                    ```
-
-                    *As of version 1.0.0 the API will only be changed in accordance to semver. Feedback is welcome, although I cannot guarantee any response times at the moment.*
-
-                    Functions
-                    ---------
-
-                    ```js
-                    var ps = new ProcessStreams()
-                    ```
-
-                    #### `ps.spawn(command, [args], [options])`
-
-                    For details about function arguments please refer to the api documentation of
-                    [child_process.spawn(command, [args], [options])](http://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options)
+```
+hello
+```
 
 
-                    #### `ps.exec(command, [options], callback)`
 
-                    For details about function arguments please refer to the api documentation of
-                    [child_process.exec(command, [options], callback)](http://nodejs.org/api/child_process.html#child_process_child_process_exec_command_options_callback)
+Functions
+---------
+
+#### `ps.spawn(command, [args], [options])`
+
+For details about function arguments please refer to the api documentation of
+[child_process.spawn(command, [args], [options])](http://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options)
 
 
-                    #### `ps.execFile(file, [args], [options], [callback])`
+#### `ps.exec(command, [options], callback)`
 
-                    For details about function arguments please refer to the api documentation of
-                    [child_process.execFile(file, [args], [options], [callback])](http://nodejs.org/api/child_process.html#child_process_child_process_execfile_file_args_options_callback)
+For details about function arguments please refer to the api documentation of
+[child_process.exec(command, [options], callback)](http://nodejs.org/api/child_process.html#child_process_child_process_exec_command_options_callback)
 
-                    #### `ps.factory(useTmpIn, useTmpOut, callback)`
 
-                    This function uses the provided callback to connect input and output of the resulting stream. `useTmpIn` and `useTmpOut` are booleans that define which
-                    parts of the stream temp should use temp files.
-                    `callback` has the signature `function(input, output, callback)`. "input" and "output" are either streams of paths of temporary files. The callback must
-                    be called when data is available for output. If "tmpUseOut" is `false`, this can be called immediately. It "tmpUseOut" is `true` it must be called, when the
-                    output tempfile has completely been written to.
-<!-- /part -->
+#### `ps.execFile(file, [args], [options], [callback])`
 
-<!-- part name='partials/api.md' -->
-<!-- /part -->
+For details about function arguments please refer to the api documentation of
+[child_process.execFile(file, [args], [options], [callback])](http://nodejs.org/api/child_process.html#child_process_child_process_execfile_file_args_options_callback)
 
-<!-- part name='partials/howitworks.md' -->
-<!-- /part -->
+#### `ps.factory(useTmpIn, useTmpOut, callback)`
 
-<!-- part name='partials/license.md' -->
+This function uses the provided callback to connect input and output of the resulting stream. `useTmpIn` and `useTmpOut` are booleans that define which
+parts of the stream temp should use temp files.
+`callback` has the signature `function(input, output, callback)`. "input" and "output" are either streams of paths of temporary files. The callback must
+be called when data is available for output. If "tmpUseOut" is `false`, this can be called immediately. It "tmpUseOut" is `true` it must be called, when the
+output tempfile has completely been written to.
+
+
+Changing the placeholder tokens
+-------------------------------
+The tokens `<INPUT>` and `<OUTPUT>` can be changed:
+
+```js
+var stringToStream = require('string-to-stream')
+
+var ProcessStream = require("../");
+var ps = new ProcessStream('[IN]', '[OUT]');
+stringToStream('hello\n')
+  .pipe(ps.exec("cp [IN] [OUT]"))
+  .pipe(process.stdout);
+```
+
+Events
+------
+Process errors (such as not finding the executable file) are emitted on the resulting stream as `'error'` event.
+The `'started'` event is emitted when the is started. Its first argument is the child-process object, second and
+third arguments are the `command` and `args` passed to `ps.exec`, `ps.spawn` or `ps.execFile`), but with the
+placeholders resolved to the their actual temporary files.
+
+```js
+var stringToStream = require('string-to-stream')
+
+var ProcessStream = require("../");
+var ps = new ProcessStream();
+
+stringToStream('hello\n')
+  .pipe(ps.spawn("cat"))
+  .on("error", function (err) {
+    // Handle errors
+  })
+  .on("input-closed", function (err) {
+    // Handle ECONNRESET and EPIPE processe's stdin
+  })
+  .on("started", function (process, command, args) {
+    // If "ps.exec" is called, 'command' contains the whole
+    // resolved command and 'args' is undefined.
+  })
+  .on("exit", function (code, signal) {
+    // see the 'child_process' documentation for the 'exit'-event.
+  })
+  .pipe(process.stdout);
+```
+
+
+
 ## License
 
 `process-streams` is published under the MIT-license. 
 See [LICENSE](LICENSE) for details.
-<!-- /part -->
 
-<!-- part name='partials/changelog.md' -->
 ## Release-Notes
  
 For release notes, see [CHANGELOG.md](CHANGELOG.md)
- <!-- /part -->
-
+ 
 ## Contributing guidelines
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).<!-- /part -->
+See [CONTRIBUTING.md](CONTRIBUTING.md).

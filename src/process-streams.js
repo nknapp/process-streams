@@ -197,6 +197,7 @@ function ProcessStreams (IN, OUT) {
         case OUT:
           resultOut = resultOut || tmpOut
           return resultOut
+        /* istanbul ignore next */
         default:
           throw new Error("Found '" + match + "'. Placeholder regex not consistent: " + JSON.stringify({
             IN: IN,
