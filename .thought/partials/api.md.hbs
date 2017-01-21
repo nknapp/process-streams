@@ -1,0 +1,44 @@
+Functions
+---------
+
+#### `ps.spawn(command, [args], [options])`
+
+For details about function arguments please refer to the api documentation of
+[child_process.spawn(command, [args], [options])](http://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options)
+
+
+#### `ps.exec(command, [options], callback)`
+
+For details about function arguments please refer to the api documentation of
+[child_process.exec(command, [options], callback)](http://nodejs.org/api/child_process.html#child_process_child_process_exec_command_options_callback)
+
+
+#### `ps.execFile(file, [args], [options], [callback])`
+
+For details about function arguments please refer to the api documentation of
+[child_process.execFile(file, [args], [options], [callback])](http://nodejs.org/api/child_process.html#child_process_child_process_execfile_file_args_options_callback)
+
+#### `ps.factory(useTmpIn, useTmpOut, callback)`
+
+This function uses the provided callback to connect input and output of the resulting stream. `useTmpIn` and `useTmpOut` are booleans that define which
+parts of the stream temp should use temp files.
+`callback` has the signature `function(input, output, callback)`. "input" and "output" are either streams of paths of temporary files. The callback must
+be called when data is available for output. If "tmpUseOut" is `false`, this can be called immediately. It "tmpUseOut" is `true` it must be called, when the
+output tempfile has completely been written to.
+
+
+Changing the placeholder tokens
+-------------------------------
+The tokens `<INPUT>` and `<OUTPUT>` can be changed:
+
+{{example 'examples/placeholders.js'}}
+
+Events
+------
+Process errors (such as not finding the executable file) are emitted on the resulting stream as `'error'` event.
+The `'started'` event is emitted when the is started. Its first argument is the child-process object, second and
+third arguments are the `command` and `args` passed to `ps.exec`, `ps.spawn` or `ps.execFile`), but with the
+placeholders resolved to the their actual temporary files.
+
+{{example 'examples/events.js'}}
+
