@@ -34,14 +34,14 @@ function createStream (tmpIn, tmpOut, callback) {
             if (tmpIn) {
               fs.exists(tmpIn, function (exists) {
                 if (exists) {
-                  fs.unlink(tmpIn)
+                  fs.unlink(tmpIn, function () {})
                 }
               })
             }
             if (tmpOut) {
               fs.exists(tmpOut, function (exists) {
                 if (exists) {
-                  fs.unlink(tmpOut)
+                  fs.unlink(tmpOut, function () {})
                 }
               })
             }
@@ -49,7 +49,7 @@ function createStream (tmpIn, tmpOut, callback) {
           }
           // tmpFile is not needed anymore
           if (tmpIn) {
-            fs.unlink(tmpIn)
+            fs.unlink(tmpIn, function () {})
           }
           if (tmpOut) {
             fs.exists(tmpOut, function (exists) {
@@ -57,7 +57,7 @@ function createStream (tmpIn, tmpOut, callback) {
                 var out = fs.createReadStream(tmpOut)
                 out.pipe(outgoing)
                 out.on('end', function () {
-                  fs.unlink(tmpOut)
+                  fs.unlink(tmpOut, function () {})
                 })
               } else {
                 result.emit('error', new Error('Child process has not created the output-temp file'))
