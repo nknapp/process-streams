@@ -5,6 +5,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 # Upcoming
 
+# v1.0.3
+
+Date: 2024-07-14T13:42:53.319Z
+
   * fix: Drop "tempfile" dependency in favor of custom algorithm (#4)
 
 # v1.0.2
