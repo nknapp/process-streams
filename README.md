@@ -1,9 +1,7 @@
 # process-streams 
 
 [![NPM version](https://img.shields.io/npm/v/process-streams.svg)](https://npmjs.com/package/process-streams)
-[![Travis Build Status](https://travis-ci.org/nknapp/process-streams.svg?branch=master)](https://travis-ci.org/nknapp/process-streams)
-[![Coverage Status](https://img.shields.io/coveralls/nknapp/process-streams.svg)](https://coveralls.io/r/nknapp/process-streams)
-
+![ci-badge](https://github.com/nknapp/process-streams/actions/workflows/ci.yml/badge.svg?branch=master)
 > Wrapper for piping data into and out of child processes
 
 Motivation
