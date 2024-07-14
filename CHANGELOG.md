@@ -11,6 +11,11 @@ Date: 2024-07-14T13:42:53.319Z
 
   * fix: Drop "tempfile" dependency in favor of custom algorithm (#4)
 
+Note: This release changes the naming pattern of temporary files from
+`<uuid>.in` and `<uuid>.out` to `ps-<timestamp>-<randomhex>.in` (and `.out`)
+It uses `os.tmpDir()` to find the temporary directory. Please report any
+problems.
+
 # v1.0.2
 
   * chore: Run tests in Github Actions
