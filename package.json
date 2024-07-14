@@ -1,6 +1,6 @@
 {
   "name": "process-streams",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Wrapper for piping data into and out of child processes",
   "homepage": "https://github.com/nknapp/process-streams",
   "repository": {
