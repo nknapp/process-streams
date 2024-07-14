@@ -1,0 +1,50 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - master
+  pull_request: {}
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint    
+  test:
+    name: Test (Node)
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      fail-fast: false
+      matrix:
+        operating-system: ['ubuntu-latest', 'windows-latest']
+        node-version: ['0.10', '0.12', '4','6','8','10','12','14','16', '18', '20','22']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Test
+        run: npm run test
