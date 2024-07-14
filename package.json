@@ -20,7 +20,7 @@
     "thought": "thought run -a",
     "preversion": "node scripts/on-preversion.mjs",
     "version": "node scripts/on-version.mjs",
-    "prepare": "node scripts/on-prepare.mjs",
+    "prepare": "node scripts/on-prepare.js",
     "postversion": "npm publish && git push origin master --tags"
   },
   "devDependencies": {
