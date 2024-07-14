@@ -1,7 +1,7 @@
-var stringToStream = require('string-to-stream')
+const stringToStream = require('string-to-stream')
 
-var ProcessStream = require('../')
-var ps = new ProcessStream()
+const ProcessStream = require('../')
+const ps = new ProcessStream()
 
 // This basically pipes the stream as-is to stdout
 // through multiple variations of process-streams

@@ -1,7 +1,7 @@
-var stringToStream = require('string-to-stream')
+const stringToStream = require('string-to-stream')
 
-var ProcessStream = require('../')
-var ps = new ProcessStream()
+const ProcessStream = require('../')
+const ps = new ProcessStream()
 
 stringToStream('hello\n')
   .pipe(ps.spawn('cat'))

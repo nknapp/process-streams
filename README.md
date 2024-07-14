@@ -1,4 +1,4 @@
-# process-streams 
+# process-streams
 
 [![NPM version](https://img.shields.io/npm/v/process-streams.svg)](https://npmjs.com/package/process-streams)
 ![ci-badge](https://github.com/nknapp/process-streams/actions/workflows/ci.yml/badge.svg?branch=master)
@@ -46,10 +46,10 @@ Simple Examples
 The following examples actually only pipes data to stdout, but via child processes with different temp-file options.
 
 ```js
-var stringToStream = require('string-to-stream')
+const stringToStream = require('string-to-stream')
 
-var ProcessStream = require('process-streams')
-var ps = new ProcessStream()
+const ProcessStream = require('process-streams')
+const ps = new ProcessStream()
 
 // This basically pipes the stream as-is to stdout
 // through multiple variations of process-streams
@@ -115,10 +115,10 @@ Changing the placeholder tokens
 The tokens `<INPUT>` and `<OUTPUT>` can be changed:
 
 ```js
-var stringToStream = require('string-to-stream')
+const stringToStream = require('string-to-stream')
 
-var ProcessStream = require('process-streams')
-var ps = new ProcessStream('[IN]', '[OUT]')
+const ProcessStream = require('process-streams')
+const ps = new ProcessStream('[IN]', '[OUT]')
 stringToStream('hello\n')
   .pipe(ps.exec('cp [IN] [OUT]'))
   .pipe(process.stdout)
@@ -132,10 +132,10 @@ third arguments are the `command` and `args` passed to `ps.exec`, `ps.spawn` or 
 placeholders resolved to the their actual temporary files.
 
 ```js
-var stringToStream = require('string-to-stream')
+const stringToStream = require('string-to-stream')
 
-var ProcessStream = require('process-streams')
-var ps = new ProcessStream()
+const ProcessStream = require('process-streams')
+const ps = new ProcessStream()
 
 stringToStream('hello\n')
   .pipe(ps.spawn('cat'))
@@ -173,3 +173,11 @@ For release notes, see [CHANGELOG.md](CHANGELOG.md)
 # Contributing guidelines
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Funding :coffee:
+
+You can send me money, if you like my work:
+
+- [Liberapay](https://de.liberapay.com/nils.knappmeier/)
+- [Paypal](https://www.paypal.com/donate/?hosted_button_id=GB656ZSAEQEXN)
+- [Github Sponsors](https://github.com/sponsors/nknapp/)

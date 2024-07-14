@@ -2,7 +2,7 @@
   "name": "process-streams",
   "version": "1.0.1",
   "description": "Wrapper for piping data into and out of child processes",
-  "homepage": "http://github.com/nknapp/process-streams",
+  "homepage": "https://github.com/nknapp/process-streams",
   "repository": {
     "type": "git",
     "url": "git://github.com/nknapp/process-streams.git"
@@ -15,10 +15,13 @@
   "scripts": {
     "test": "mocha",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint:fix": "eslint . --fix --ext .js,.mjs",
     "coverage": "istanbul cover ./node_modules/.bin/_mocha",
     "thought": "thought run -a",
-    "version": "thoughtful changelog -o -a &&  npm run thought"
+    
+    "preversion": "node scripts/on-preversion.mjs",
+    "version": "node scripts/on-version.mjs",
+    "prepare": "./scripts/on-prepare.sh"
   },
   "devDependencies": {
     "chai": "^3.5.0",
@@ -27,10 +30,18 @@
     "eslint-config-standard": "17.1.0",
     "event-stream": "^3.2.2",
     "istanbul": "0.4.5",
+    "lint-staged": "15.2.7",
     "mocha": "^3.2.0",
     "string-to-stream": "^1.1.0",
     "thought": "4.0.0"
   },
-  "author": "Nils Knappmeier <npm@knappi.org> (http://www.knappi.org)",
-  "license": "MIT"
+  "lint-staged": {
+    "*.{js,mjs}": "eslint --fix ."
+  },
+  "author": "Nils Knappmeier <npm@knappi.org> (https://knappi.org)",
+  "license": "MIT",
+  "funding": [
+    "https://www.paypal.com/donate/?hosted_button_id=GB656ZSAEQEXN",
+    "https://de.liberapay.com/nils.knappmeier/"
+  ]
 }
