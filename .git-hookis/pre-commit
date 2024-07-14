@@ -1,3 +1,4 @@
 #!/bin/bash
 
 npx lint-staged
+npx thought run -a
