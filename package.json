@@ -18,10 +18,10 @@
     "lint:fix": "eslint . --fix --ext .js,.mjs",
     "coverage": "istanbul cover ./node_modules/.bin/_mocha",
     "thought": "thought run -a",
-    
     "preversion": "node scripts/on-preversion.mjs",
     "version": "node scripts/on-version.mjs",
-    "prepare": "./scripts/on-prepare.sh"
+    "prepare": "./scripts/on-prepare.sh",
+    "postversion": "npm publish && git push origin master --tags"
   },
   "devDependencies": {
     "chai": "^3.5.0",
