@@ -30,9 +30,9 @@
     "event-stream": "^3.2.2",
     "istanbul": "0.4.5",
     "lint-staged": "15.2.7",
-    "mocha": "^3.2.0",
+    "mocha": "^10.6.0",
     "string-to-stream": "^1.1.0",
-    "thought": "4.0.0"
+    "thought": "^4.0.1"
   },
   "lint-staged": {
     "*.{js,mjs}": "eslint --fix ."
