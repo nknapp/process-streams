@@ -5,10 +5,6 @@ var expect = chai.expect
 var checkmark = require('chai-checkmark')
 chai.use(checkmark)
 
-/* global it */
-/* global describe */
-/* global xit */
-
 var ps = new ProcessStreams()
 
 function largeStream () {

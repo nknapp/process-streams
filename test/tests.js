@@ -6,9 +6,6 @@ var expect = chai.expect
 var checkmark = require('chai-checkmark')
 chai.use(checkmark)
 
-/* global it */
-/* global describe */
-
 var ps = new ProcessStreams()
 var source = ['ab', 'b']
 
