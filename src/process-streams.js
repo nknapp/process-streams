@@ -3,7 +3,7 @@
 var stream = require('stream')
 var duplexMaker = require('duplex-maker')
 var fs = require('fs')
-var tmp = require('tempfile')
+var tmpFile = require('./temp-file')
 var cp = require('child_process')
 var quotemeta = require('./quotemeta')
 
@@ -232,7 +232,7 @@ function ProcessStreams (IN, OUT) {
    * @param [options] options as in "child_process.spawn"
    */
   this.spawn = function (command, args, options) {
-    var parsed = parseArgs(args, tmp('.in'), tmp('.out'))
+    var parsed = parseArgs(args, tmpFile('.in'), tmpFile('.out'))
     return wrapProcess(parsed.in, parsed.out, function () {
       var process = cp.spawn(command, parsed.args, options)
       this.emit('started', process, command, parsed.args)
@@ -248,7 +248,7 @@ function ProcessStreams (IN, OUT) {
    * @param [callback] callback as in "child_process.exec"
    */
   this.exec = function (command, options, callback) {
-    var parsed = parseString(command, tmp('.in'), tmp('.out'))
+    var parsed = parseString(command, tmpFile('.in'), tmpFile('.out'))
     return wrapProcess(parsed.in, parsed.out, function () {
       var resultStream = this
       if (typeof options === 'function') {
@@ -280,7 +280,7 @@ function ProcessStreams (IN, OUT) {
    * @param [callback] callback as in "child_process.exec"
    */
   this.execFile = function (command, args, options, callback) {
-    var parsed = parseArgs(args, tmp('.in'), tmp('.out'))
+    var parsed = parseArgs(args, tmpFile('.in'), tmpFile('.out'))
     return wrapProcess(parsed.in, parsed.out, function () {
       if (typeof options === 'function') {
         callback = options
@@ -301,6 +301,6 @@ function ProcessStreams (IN, OUT) {
    *  "this.emit(...)" may be used to emit events when from the callback.
    */
   this.factory = function (useTmpIn, useTmpOut, callback) {
-    return createStream(useTmpIn && tmp('.in'), useTmpOut && tmp('.out'), callback)
+    return createStream(useTmpIn && tmpFile('.in'), useTmpOut && tmpFile('.out'), callback)
   }
 }

@@ -8,8 +8,7 @@
     "url": "git://github.com/nknapp/process-streams.git"
   },
   "dependencies": {
-    "duplex-maker": "^1.0.0",
-    "tempfile": "^1.1.0"
+    "duplex-maker": "^1.0.0"
   },
   "main": "src/process-streams.js",
   "scripts": {

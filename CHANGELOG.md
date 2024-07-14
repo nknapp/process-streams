@@ -5,6 +5,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 # Upcoming
 
+  * fix: Drop "tempfile" dependency in favor of custom algorithm (#4)
+
+# v1.0.2
+
   * chore: Run tests in Github Actions
   * Ensure compatibility with old node versions 
   * fix: error when unlinking temp-files in newer node versions (#3)
