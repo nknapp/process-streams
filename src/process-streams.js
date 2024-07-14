@@ -5,7 +5,7 @@ var duplexMaker = require('duplex-maker')
 var fs = require('fs')
 var tmp = require('tempfile')
 var cp = require('child_process')
-var quotemeta = require('quotemeta')
+var quotemeta = require('./quotemeta')
 
 /**
  * Base function to create streams of something, if values are provided for tmpIn (or tmpOut),
@@ -21,8 +21,23 @@ var quotemeta = require('quotemeta')
 function createStream (tmpIn, tmpOut, callback) {
   var incoming = new stream.PassThrough()
   var outgoing = new stream.PassThrough()
-  // input paramter of the child process
+
+  // input parameter of the child process
   var result = duplexMaker(incoming, outgoing)
+
+  function unlinkTmpFile (tmpFile) {
+    setTimeout(function () {
+      fs.unlink(tmpFile, function (error) {
+        if (error == null) return
+        if (error.code === 'ENOENT') {
+          /* ignore error */
+          return
+        }
+        result.emit('error', error)
+      })
+    })
+  }
+
   setTimeout(function () {
     inStream(incoming, tmpIn, function (err) {
       if (err) {
@@ -32,34 +47,24 @@ function createStream (tmpIn, tmpOut, callback) {
           if (err) {
             result.emit('error', err)
             if (tmpIn) {
-              fs.exists(tmpIn, function (exists) {
-                if (exists) {
-                  fs.unlink(tmpIn)
-                }
-              })
+              unlinkTmpFile(tmpIn)
             }
             if (tmpOut) {
-              fs.exists(tmpOut, function (exists) {
-                if (exists) {
-                  fs.unlink(tmpOut)
-                }
-              })
+              unlinkTmpFile(tmpOut)
             }
             return
           }
-          // tmpFile is not needed anymore
           if (tmpIn) {
-            fs.unlink(tmpIn)
+            unlinkTmpFile(tmpIn)
           }
           if (tmpOut) {
-            fs.exists(tmpOut, function (exists) {
-              if (exists) {
-                var out = fs.createReadStream(tmpOut)
-                out.pipe(outgoing)
-                out.on('end', function () {
-                  fs.unlink(tmpOut)
-                })
-              } else {
+            var out = fs.createReadStream(tmpOut)
+            out.pipe(outgoing)
+            out.on('end', function () {
+              unlinkTmpFile(tmpOut)
+            })
+            out.on('error', function (error) {
+              if (error.code === 'ENOENT') {
                 result.emit('error', new Error('Child process has not created the output-temp file'))
               }
             })
@@ -84,7 +89,9 @@ function inStream (stream, tmpFile, callback) {
     var tmpWrite = fs.createWriteStream(tmpFile)
     stream.pipe(tmpWrite)
     tmpWrite.on('finish', function () {
-      callback(null)
+      setTimeout(function () {
+        callback(null)
+      }, 100)
     })
     tmpWrite.on('error', function (error) {
       callback(error)
@@ -166,12 +173,14 @@ function ProcessStreams (IN, OUT) {
   function parseArgs (args, tmpIn, tmpOut) {
     var resultIn = null
     var resultOut = null
-    var resultArgs = args ? args.map(function (arg) {
-      var parsed = parseString(arg, tmpIn, tmpOut)
-      resultIn = resultIn || parsed.in
-      resultOut = resultOut || parsed.out
-      return parsed.string
-    }) : args
+    var resultArgs = args
+      ? args.map(function (arg) {
+        var parsed = parseString(arg, tmpIn, tmpOut)
+        resultIn = resultIn || parsed.in
+        resultOut = resultOut || parsed.out
+        return parsed.string
+      })
+      : args
     return {
       in: resultIn,
       out: resultOut,
@@ -184,7 +193,7 @@ function ProcessStreams (IN, OUT) {
    * @param string
    * @param tmpIn
    * @param tmpOut
-   * @returns {{in: *, out: *, string: (XML|string|void|*)}}
+   * @returns {{in: *, out: *, string: string}}
    */
   function parseString (string, tmpIn, tmpOut) {
     var resultIn = null
@@ -197,7 +206,7 @@ function ProcessStreams (IN, OUT) {
         case OUT:
           resultOut = resultOut || tmpOut
           return resultOut
-        /* istanbul ignore next */
+        /* istanbul ignore next Impossible to test, should never happen */
         default:
           throw new Error("Found '" + match + "'. Placeholder regex not consistent: " + JSON.stringify({
             IN: IN,
@@ -295,4 +304,3 @@ function ProcessStreams (IN, OUT) {
     return createStream(useTmpIn && tmp('.in'), useTmpOut && tmp('.out'), callback)
   }
 }
-

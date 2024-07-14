@@ -5,7 +5,6 @@ var chai = require('chai')
 var expect = chai.expect
 var checkmark = require('chai-checkmark')
 chai.use(checkmark)
-require('trace-and-clarify-if-possible')
 
 /* global it */
 /* global describe */
@@ -22,19 +21,19 @@ function checkResult (done) {
 }
 
 var functions = {
-  'Spawn': {
+  Spawn: {
     func: ps.spawn,
     params: function (command, args) {
       return [command, args]
     }
   },
-  'ExecFile': {
+  ExecFile: {
     func: ps.execFile,
     params: function (command, args) {
       return [command, args]
     }
   },
-  'Exec': {
+  Exec: {
     func: ps.exec,
     params: function (command, args) {
       return [[command].concat(args).join(' ')]
@@ -43,10 +42,10 @@ var functions = {
 }
 
 var variants = {
-  'PipePipe': ['cat'],
-  'TmpPipe': ['cat', ['<INPUT>']],
-  'PipeTmp': ['tee', ['<OUTPUT>']],
-  'TmpTmp': ['cp', ['<INPUT>', '<OUTPUT>']]
+  PipePipe: ['cat'],
+  TmpPipe: ['cat', ['<INPUT>']],
+  PipeTmp: ['tee', ['<OUTPUT>']],
+  TmpTmp: ['cp', ['<INPUT>', '<OUTPUT>']]
 }
 
 describe('The ProcessStreams', function () {
@@ -61,7 +60,7 @@ describe('The ProcessStreams', function () {
        */
       it('testDefault' + f + v, function (done) {
         expect(2).checks(done)
-        const spawn = func.apply(ps, params)
+        var spawn = func.apply(ps, params)
         spawn.setEncoding('utf-8')
 
         es.readArray(source)
@@ -78,7 +77,7 @@ describe('The ProcessStreams', function () {
       it('testStartedEvent' + f + v, function (done) {
         expect(5).checks(done)
         es.readArray(source).pipe(func.apply(this, params)).on('started', function () {
-          expect(arguments[0].hasOwnProperty('pid'), 'First argument should be a child_process object.').to.be.ok.mark()
+          expect(Object.hasOwnProperty.call(arguments[0], 'pid'), 'First argument should be a child_process object.').to.be.ok.mark()
         }).on('exit', function (code, signal) {
           expect(code, 'Checking return code').to.equal(0).mark()
           expect(signal, 'Checking signal parameter').not.to.be.ok.mark()
@@ -95,7 +94,8 @@ describe('The ProcessStreams', function () {
         expect(1).check(done)
         es.readArray(source).pipe(func.call(this, params[0] + 'xxxxx', params[1])).on('error', function (error) {
           expect(error, 'Must receive error event but received ' + error).to.be.ok.mark()
-        }).pipe(es.wait(function (err, target) {
+        }).pipe(es.wait(function (err) {
+          // eslint-disable-next-line no-unused-expressions
           expect(err, 'Must not reach this block').to.be.null
         }))
       })
@@ -109,7 +109,7 @@ describe('The ProcessStreams', function () {
           var params = paramsTransformer.call(this, 'echo', variants[v][1])
           es.readArray(source).pipe(func.apply(this, params)).on('error', function () {
             expect(true, 'First argument should be a child_process object.').to.be.ok.mark()
-          }).pipe(es.wait(function (err, target) {
+          }).pipe(es.wait(function (err) {
             expect(err).to.be.null.mark()
           }))
         })
@@ -121,16 +121,16 @@ describe('The ProcessStreams', function () {
     var ps = new ProcessStreams('[IN]', '[OUT]')
     expect(ps.IN, 'Checking input placeholder').to.equal('[IN]')
     expect(ps.OUT, 'Checking output placeholder').to.equal('[OUT]')
-    const spawn = ps.exec('cp [IN] [OUT]')
+    var spawn = ps.exec('cp [IN] [OUT]')
     spawn.setEncoding('utf-8')
     es.readArray(source).pipe(spawn).pipe(es.wait(checkResult(test)))
   })
 
   function wrapper (input, output, callback) {
-    if (typeof (input) === 'string') {
+    if (typeof input === 'string') {
       input = fs.createReadStream(input)
     }
-    if (typeof (output) === 'string') {
+    if (typeof output === 'string') {
       output = fs.createWriteStream(output)
       output.on('error', callback)
       output.on('finish', function () {
@@ -143,25 +143,25 @@ describe('The ProcessStreams', function () {
   }
 
   it('testFactoryPipePipe', function (done) {
-    const spawn = ps.factory(false, false, wrapper)
+    var spawn = ps.factory(false, false, wrapper)
     spawn.setEncoding('utf-8')
     es.readArray(source).pipe(spawn).pipe(es.wait(checkResult(done)))
   })
 
   it('testFactoryTmpPipe', function (done) {
-    const spawn = ps.factory(true, false, wrapper)
+    var spawn = ps.factory(true, false, wrapper)
     spawn.setEncoding('utf-8')
     es.readArray(source).pipe(spawn).pipe(es.wait(checkResult(done)))
   })
 
   it('testFactoryPipeTmp', function (done) {
-    const spawn = ps.factory(true, false, wrapper)
+    var spawn = ps.factory(true, false, wrapper)
     spawn.setEncoding('utf-8')
     es.readArray(source).pipe(spawn).pipe(es.wait(checkResult(done)))
   })
 
   it('testFactoryTmpTmp', function (done) {
-    const spawn = ps.factory(true, false, wrapper)
+    var spawn = ps.factory(true, false, wrapper)
     spawn.setEncoding('utf-8')
     es.readArray(source).pipe(spawn).pipe(es.wait(checkResult(done)))
   })

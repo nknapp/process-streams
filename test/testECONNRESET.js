@@ -1,6 +1,5 @@
 var ProcessStreams = require('../src/process-streams.js')
 var es = require('event-stream')
-require('trace-and-clarify-if-possible')
 var chai = require('chai')
 var expect = chai.expect
 var checkmark = require('chai-checkmark')
@@ -46,7 +45,6 @@ describe('the input-closed event', function () {
       }))
   })
 
-  // xit: Testcase not stable
   xit('should be emitted for EPIPE-events', function (done) {
     expect(3).checks(done)
 
@@ -65,4 +63,3 @@ describe('the input-closed event', function () {
       }))
   })
 })
-

@@ -9,31 +9,27 @@
   },
   "dependencies": {
     "duplex-maker": "^1.0.0",
-    "quotemeta": "0.0.0",
     "tempfile": "^1.1.0"
   },
   "main": "src/process-streams.js",
   "scripts": {
-    "test": "./node_modules/nodeunit/bin/nodeunit test && standard",
-    "precoverage": "npm install istanbul",
+    "test": "mocha",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "coverage": "istanbul cover ./node_modules/.bin/_mocha",
     "thought": "thought run -a",
-    "prethoughtcheck": "thought --version || npm -g install thought",
-    "thoughtcheck": "thought check-engines",
-    "version": "thoughtful changelog -o -a &&  npm run thought",
-    "preversion": "npm run thoughtcheck"
+    "version": "thoughtful changelog -o -a &&  npm run thought"
   },
   "devDependencies": {
     "chai": "^3.5.0",
     "chai-checkmark": "^1.0.1",
-    "clarify": "^1.0.5",
+    "eslint": "8.57.0",
+    "eslint-config-standard": "17.1.0",
     "event-stream": "^3.2.2",
+    "istanbul": "0.4.5",
     "mocha": "^3.2.0",
-    "request": "^2.51.0",
     "string-to-stream": "^1.1.0",
-    "tar": "^1.0.3",
-    "trace": "^1.1.0",
-    "trace-and-clarify-if-possible": "^1.0.0"
+    "thought": "4.0.0"
   },
   "author": "Nils Knappmeier <npm@knappi.org> (http://www.knappi.org)",
   "license": "MIT"

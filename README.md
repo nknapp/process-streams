@@ -1,9 +1,8 @@
 # process-streams 
 
-[![NPM version](https://badge.fury.io/js/process-streams.svg)](http://badge.fury.io/js/process-streams)
+[![NPM version](https://img.shields.io/npm/v/process-streams.svg)](https://npmjs.com/package/process-streams)
 [![Travis Build Status](https://travis-ci.org/nknapp/process-streams.svg?branch=master)](https://travis-ci.org/nknapp/process-streams)
 [![Coverage Status](https://img.shields.io/coveralls/nknapp/process-streams.svg)](https://coveralls.io/r/nknapp/process-streams)
-
 
 > Wrapper for piping data into and out of child processes
 
@@ -51,30 +50,29 @@ The following examples actually only pipes data to stdout, but via child process
 ```js
 var stringToStream = require('string-to-stream')
 
-var ProcessStream = require("../");
-var ps = new ProcessStream();
-
+var ProcessStream = require('process-streams')
+var ps = new ProcessStream()
 
 // This basically pipes the stream as-is to stdout
 // through multiple variations of process-streams
 
 // Temporary files for input and output
 stringToStream('hello\n')
-  .pipe(ps.exec("cp <INPUT> <OUTPUT>"))
-  .pipe(ps.spawn("cp", ["<INPUT>", "<OUTPUT>"]))
-  .pipe(ps.execFile("cp", ["<INPUT>", "<OUTPUT>"]))
+  .pipe(ps.exec('cp <INPUT> <OUTPUT>'))
+  .pipe(ps.spawn('cp', ['<INPUT>', '<OUTPUT>']))
+  .pipe(ps.execFile('cp', ['<INPUT>', '<OUTPUT>']))
 
   // Stream input, use temp-file for output
-  .pipe(ps.spawn("tee", ["<OUTPUT>"]))
+  .pipe(ps.spawn('tee', ['<OUTPUT>']))
 
   // Temp-file for input, Stream for output
-  .pipe(ps.spawn("cat", ["<INPUT>"]))
+  .pipe(ps.spawn('cat', ['<INPUT>']))
 
   // Pipe both sides
-  .pipe(ps.spawn("cat"))
+  .pipe(ps.spawn('cat'))
 
   // Result to stdout
-  .pipe(process.stdout);
+  .pipe(process.stdout)
 ```
 
 Output:
@@ -121,11 +119,11 @@ The tokens `<INPUT>` and `<OUTPUT>` can be changed:
 ```js
 var stringToStream = require('string-to-stream')
 
-var ProcessStream = require("../");
-var ps = new ProcessStream('[IN]', '[OUT]');
+var ProcessStream = require('process-streams')
+var ps = new ProcessStream('[IN]', '[OUT]')
 stringToStream('hello\n')
-  .pipe(ps.exec("cp [IN] [OUT]"))
-  .pipe(process.stdout);
+  .pipe(ps.exec('cp [IN] [OUT]'))
+  .pipe(process.stdout)
 ```
 
 Events
@@ -138,38 +136,42 @@ placeholders resolved to the their actual temporary files.
 ```js
 var stringToStream = require('string-to-stream')
 
-var ProcessStream = require("../");
-var ps = new ProcessStream();
+var ProcessStream = require('process-streams')
+var ps = new ProcessStream()
 
 stringToStream('hello\n')
-  .pipe(ps.spawn("cat"))
-  .on("error", function (err) {
+  .pipe(ps.spawn('cat'))
+  .on('error', function (err) {
     // Handle errors
+    console.log('error', err)
   })
-  .on("input-closed", function (err) {
+  .on('input-closed', function (err) {
     // Handle ECONNRESET and EPIPE processe's stdin
+    console.log('input-closed', err)
   })
-  .on("started", function (process, command, args) {
+  .on('started', function (process, command, args) {
     // If "ps.exec" is called, 'command' contains the whole
     // resolved command and 'args' is undefined.
   })
-  .on("exit", function (code, signal) {
+  .on('exit', function (code, signal) {
     // see the 'child_process' documentation for the 'exit'-event.
   })
-  .pipe(process.stdout);
+  .pipe(process.stdout)
 ```
 
 
 
-## License
+# License
 
-`process-streams` is published under the MIT-license. 
+`process-streams` is published under the MIT-license.
+
 See [LICENSE](LICENSE) for details.
 
-## Release-Notes
+
+# Release-Notes
  
 For release notes, see [CHANGELOG.md](CHANGELOG.md)
  
-## Contributing guidelines
+# Contributing guidelines
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
